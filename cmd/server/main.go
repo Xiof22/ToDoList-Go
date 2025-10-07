@@ -5,6 +5,7 @@ import (
 	"github.com/Xiof22/ToDoList/internal/handlers"
 	"github.com/Xiof22/ToDoList/internal/repository/memory"
 	"github.com/Xiof22/ToDoList/internal/service"
+	"github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/gorilla/mux"
 	"net/http"
 )
@@ -14,6 +15,9 @@ func main() {
 	svc := service.New(m)
 	h := handlers.New(svc)
 	r := mux.NewRouter()
+	validator.Init()
+
+	r.HandleFunc("/tasks", h.CreateTaskHandler).Methods("POST")
 
 	fmt.Println("Serving start...")
 	err := http.ListenAndServe(":8080", r)
