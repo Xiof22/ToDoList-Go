@@ -28,12 +28,28 @@ func (h *ToDoHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) 
 	writeResponse(w, "Created succefully!")
 }
 
+func (h *ToDoHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	tasks := h.svc.GetTasks()
+
+	if len(tasks) == 0 {
+		writeResponse(w, "There's no tasks")
+		return
+	}
+
+	for _, task := range tasks {
+		writeResponse(w, task)
+	}
+}
+
 func writeResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("content-type", "text/plain")
 	switch v := data.(type) {
 
 		case string :
 			fmt.Fprintf(w, v)
+
+		case fmt.Stringer :
+			fmt.Fprintf(w, v.String())
 
 	}
 }

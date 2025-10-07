@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"strings"
+	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/Xiof22/ToDoList/internal/repository"
 )
 
@@ -28,6 +29,10 @@ func (svc *ToDoService) CreateTask(title, description string) error {
 
 	svc.repo.Create(title, description)
 	return nil
+}
+
+func (svc *ToDoService) GetTasks() []models.Task {
+	return svc.repo.GetAll()
 }
 
 func isEmptyTitle(title string) bool {
