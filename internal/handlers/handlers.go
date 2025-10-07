@@ -34,6 +34,23 @@ func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Created succefully")
 }
 
+func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	tasks, err := h.svc.GetTasks()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if len(tasks) == 0 {
+		fmt.Fprint(w, "There's no tasks")
+		return
+	}
+
+	for _, task := range tasks {
+		fmt.Fprint(w, task)
+	}
+}
+
 func getFormValueWithTrim(r *http.Request, key string) string {
 	return strings.TrimSpace(r.FormValue(key))
 }

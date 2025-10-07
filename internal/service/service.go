@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/Xiof22/ToDoList/internal/repository"
 )
 
@@ -14,4 +15,8 @@ func New(repo repository.Repository) *Service {
 
 func (svc *Service) CreateTask(title, description string) {
 	svc.repo.Create(title, description)
+}
+
+func (svc *Service) GetTasks() ([]models.Task, error) {
+	return svc.repo.GetAll()
 }

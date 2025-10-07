@@ -29,3 +29,10 @@ func (repo *Repository) Create(title, description string) {
 	repo.Tasks = append(repo.Tasks, task)
 	repo.nextID++
 }
+
+func (repo *Repository) GetAll() ([]models.Task, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	return repo.Tasks, nil
+}
