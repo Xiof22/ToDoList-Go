@@ -10,6 +10,7 @@ import (
 	"github.com/Xiof22/ToDoList/internal/router"
 	"github.com/Xiof22/ToDoList/internal/server"
 	"github.com/Xiof22/ToDoList/internal/service"
+	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"net/http"
 	"os"
 	"os/signal"

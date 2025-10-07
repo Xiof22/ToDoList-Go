@@ -6,9 +6,12 @@ import (
 	"github.com/Xiof22/ToDoList/internal/router"
 	"github.com/Xiof22/ToDoList/internal/service"
 	"net/http/httptest"
+	"testing"
 )
 
-func newTestServer() *httptest.Server {
+func newTestServer(t *testing.T) *httptest.Server {
+	t.Helper()
+
 	m := memory.New()
 	svc := service.New(m)
 	h := handlers.New(svc)
