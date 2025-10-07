@@ -32,7 +32,7 @@ func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	task, err := h.svc.CreateTask(r.Context(), req)
 	if err != nil {
-		responses.WriteError(w, responses.MapError(err), err)
+		responses.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -41,4 +41,17 @@ func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.WriteJSON(w, http.StatusCreated, resp)
+}
+
+func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	tasks, err := h.svc.GetTasks(r.Context())
+	if err != nil {
+		responses.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.WriteJSON(w, http.StatusOK, dto.TasksResponse{
+		Count: len(tasks),
+		Tasks: dto.ToTaskDTOs(tasks),
+	})
 }
