@@ -11,3 +11,7 @@ type ToDoService struct {
 func NewToDoService(repo *repository.ToDoRepository) *ToDoService {
 	return &ToDoService{repo: repo}
 }
+
+func (svc *ToDoService) CreateTask(title, description string) {
+	svc.repo.Create(title, description)
+}

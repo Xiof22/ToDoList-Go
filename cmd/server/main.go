@@ -15,6 +15,8 @@ func main() {
 	h := handler.NewToDoHandler(svc)
 	r := mux.NewRouter()
 
+	r.HandleFunc("/tasks", h.CreateTaskHandler).Methods("POST")
+
 	fmt.Println("Serving start...")
 	err := http.ListenAndServe(":8080", r)
 	if err != nil {
