@@ -11,3 +11,7 @@ type Service struct {
 func New(repo repository.Repository) *Service {
 	return &Service{repo: repo}
 }
+
+func (svc *Service) CreateTask(title, description string) {
+	svc.repo.Create(title, description)
+}
