@@ -18,6 +18,7 @@ func main() {
 	validator.Init()
 
 	r.HandleFunc("/tasks", h.CreateTaskHandler).Methods("POST")
+	r.HandleFunc("/tasks", h.GetTasksHandler).Methods("GET")
 
 	fmt.Println("Serving start...")
 	err := http.ListenAndServe(":8080", r)

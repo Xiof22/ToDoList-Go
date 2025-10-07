@@ -37,3 +37,12 @@ func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusCreated, resp)
 }
+
+func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	tasks := h.svc.GetTasks(r.Context())
+
+	writeJSON(w, http.StatusOK, dto.TasksResponse{
+		Count: len(tasks),
+		Tasks: dto.ToTaskDTOs(tasks),
+	})
+}

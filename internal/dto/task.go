@@ -21,3 +21,12 @@ func ToTaskDTO(t *models.Task) *Task {
 		IsCompleted: t.IsCompleted,
 	}
 }
+
+func ToTaskDTOs(tasks []models.Task) []Task {
+	taskDTOs := make([]Task, len(tasks))
+	for i, t := range tasks {
+		taskDTOs[i] = *ToTaskDTO(&t)
+	}
+
+	return taskDTOs
+}
