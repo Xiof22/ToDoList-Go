@@ -29,3 +29,21 @@ func (repo *Repository) CreateTask(ctx context.Context, task models.Task) (model
 
 	return task, nil
 }
+
+func (repo *Repository) GetTasks(ctx context.Context) ([]models.Task, error) {
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
+
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	tasks := make([]models.Task, len(repo.Tasks))
+	i := 0
+	for _, t := range repo.Tasks {
+		tasks[i] = *t
+		i++
+	}
+
+	return tasks, nil
+}

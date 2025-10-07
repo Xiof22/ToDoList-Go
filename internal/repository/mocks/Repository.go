@@ -42,6 +42,36 @@ func (_m *Repository) CreateTask(ctx context.Context, task models.Task) (models.
 	return r0, r1
 }
 
+// GetTasks provides a mock function with given fields: ctx
+func (_m *Repository) GetTasks(ctx context.Context) ([]models.Task, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTasks")
+	}
+
+	var r0 []models.Task
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]models.Task, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []models.Task); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.Task)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewRepository creates a new instance of Repository. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRepository(t interface {
