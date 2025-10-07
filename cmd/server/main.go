@@ -7,6 +7,7 @@ import (
 	"github.com/Xiof22/ToDoList/internal/router"
 	"github.com/Xiof22/ToDoList/internal/service"
 	"github.com/Xiof22/ToDoList/config"
+	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"net/http"
 )
 

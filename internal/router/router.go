@@ -8,5 +8,7 @@ import (
 func New(h *handlers.Handlers) *chi.Mux {
 	r := chi.NewRouter()
 
+	r.Post("/tasks", h.CreateTaskHandler)
+
 	return r
 }
