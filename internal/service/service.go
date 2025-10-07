@@ -18,3 +18,7 @@ func New(repo repository.Repository) *Service {
 func (svc *Service) CreateTask(ctx context.Context, req dto.CreateTaskRequest) models.Task {
 	return svc.repo.CreateTask(ctx, req)
 }
+
+func (svc *Service) GetTasks(ctx context.Context) []models.Task {
+	return svc.repo.GetTasks(ctx)
+}

@@ -8,4 +8,5 @@ import (
 
 type Repository interface {
 	CreateTask(ctx context.Context, req dto.CreateTaskRequest) models.Task
+	GetTasks(ctx context.Context) []models.Task
 }

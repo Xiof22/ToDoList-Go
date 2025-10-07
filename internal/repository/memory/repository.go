@@ -36,3 +36,17 @@ func (repo *Repository) CreateTask(ctx context.Context, req dto.CreateTaskReques
 
 	return *task
 }
+
+func (repo *Repository) GetTasks(ctx context.Context) []models.Task {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	tasks := make([]models.Task, len(repo.Tasks))
+	i := 0
+	for _, t := range repo.Tasks {
+		tasks[i] = *t
+		i++
+	}
+
+	return sortTasks(tasks)
+}
