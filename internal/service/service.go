@@ -9,6 +9,7 @@ import (
 
 var (
 	ErrEmptyTitle = errors.New("Title is empty")
+	ErrInvalidID = errors.New("Invalid ID")
 )
 
 type ToDoService struct {
@@ -35,6 +36,18 @@ func (svc *ToDoService) GetTasks() []models.Task {
 	return svc.repo.GetAll()
 }
 
+func (svc *ToDoService) GetTask(id int) (*models.Task, error) {
+	if !isValidID(id) {
+		return nil, ErrInvalidID
+	}
+
+	return svc.repo.Get(id), nil
+}
+
 func isEmptyTitle(title string) bool {
 	return title == ""
+}
+
+func isValidID(id int) bool {
+	return id > 0
 }

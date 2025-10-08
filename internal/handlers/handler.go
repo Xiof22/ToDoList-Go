@@ -2,7 +2,9 @@ package handler
 
 import (
 	"fmt"
+	"strconv"
 	"net/http"
+	"github.com/gorilla/mux"
 	"github.com/Xiof22/ToDoList/internal/service"
 )
 
@@ -41,6 +43,27 @@ func (h *ToDoHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *ToDoHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r)
+	if err != nil {
+		http.Error(w, "ID parsing error", http.StatusBadRequest)
+		return
+	}
+
+	task, err := h.svc.GetTask(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if task == nil {
+		writeResponse(w, "Task not found")
+		return
+	}
+
+	writeResponse(w, task)
+}
+
 func writeResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("content-type", "text/plain")
 	switch v := data.(type) {
@@ -52,4 +75,10 @@ func writeResponse(w http.ResponseWriter, data any) {
 			fmt.Fprintf(w, v.String())
 
 	}
+}
+
+func parseID(r *http.Request) (int, error) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	return strconv.Atoi(idStr)
 }
