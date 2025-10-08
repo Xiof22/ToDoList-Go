@@ -42,6 +42,34 @@ func (_m *Repository) CreateTask(ctx context.Context, task models.Task) (models.
 	return r0, r1
 }
 
+// GetTask provides a mock function with given fields: ctx, taskID
+func (_m *Repository) GetTask(ctx context.Context, taskID models.TaskID) (models.Task, error) {
+	ret := _m.Called(ctx, taskID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetTask")
+	}
+
+	var r0 models.Task
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.TaskID) (models.Task, error)); ok {
+		return rf(ctx, taskID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.TaskID) models.Task); ok {
+		r0 = rf(ctx, taskID)
+	} else {
+		r0 = ret.Get(0).(models.Task)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.TaskID) error); ok {
+		r1 = rf(ctx, taskID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTasks provides a mock function with given fields: ctx
 func (_m *Repository) GetTasks(ctx context.Context) ([]models.Task, error) {
 	ret := _m.Called(ctx)

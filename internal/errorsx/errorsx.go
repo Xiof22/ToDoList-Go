@@ -6,8 +6,10 @@ import (
 )
 
 var (
-	ErrWriteJSON   = errors.New("Failed to write JSON")
-	ErrMissingJSON = errors.New("Missing JSON")
+	ErrWriteJSON     = errors.New("Failed to write JSON")
+	ErrMissingJSON   = errors.New("Missing JSON")
+	ErrInvalidTaskID = errors.New("Invalid task ID")
+	ErrTaskNotFound  = errors.New("Task not found")
 )
 
 func ErrValidation(field, rule string) error {

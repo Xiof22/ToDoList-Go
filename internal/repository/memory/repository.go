@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"sync"
 )
@@ -46,4 +47,20 @@ func (repo *Repository) GetTasks(ctx context.Context) ([]models.Task, error) {
 	}
 
 	return tasks, nil
+}
+
+func (repo *Repository) GetTask(ctx context.Context, taskID models.TaskID) (models.Task, error) {
+	if err := ctx.Err(); err != nil {
+		return models.Task{}, err
+	}
+
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task, ok := repo.Tasks[taskID]
+	if !ok {
+		return models.Task{}, errorsx.ErrTaskNotFound
+	}
+
+	return *task, nil
 }

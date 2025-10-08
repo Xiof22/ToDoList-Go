@@ -24,3 +24,7 @@ func (svc *Service) CreateTask(ctx context.Context, req dto.CreateTaskRequest) (
 func (svc *Service) GetTasks(ctx context.Context) ([]models.Task, error) {
 	return svc.repo.GetTasks(ctx)
 }
+
+func (svc *Service) GetTask(ctx context.Context, taskID models.TaskID) (models.Task, error) {
+	return svc.repo.GetTask(ctx, taskID)
+}

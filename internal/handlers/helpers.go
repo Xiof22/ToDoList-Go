@@ -1,6 +1,10 @@
 package handlers
 
 import (
+	"github.com/Xiof22/ToDoList/internal/models"
+	"github.com/go-chi/chi"
+	"github.com/google/uuid"
+	"net/http"
 	"reflect"
 	"strings"
 )
@@ -19,4 +23,15 @@ func trimStrings(s any) {
 			field.SetString(strings.TrimSpace(field.String()))
 		}
 	}
+}
+
+func pathID(r *http.Request, key string) (models.TaskID, error) {
+	raw := chi.URLParam(r, key)
+	parsed, err := uuid.Parse(raw)
+	if err != nil {
+		var zero models.TaskID
+		return zero, err
+	}
+
+	return models.TaskID(parsed), nil
 }
