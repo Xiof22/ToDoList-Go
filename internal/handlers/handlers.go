@@ -46,3 +46,29 @@ func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 		Tasks: dto.ToTaskDTOs(tasks),
 	})
 }
+
+func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLIntParam(r, "id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	req := dto.TaskIdentifier{ID: id}
+	if err := validator.Validate.Struct(req); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	task, found := h.svc.GetTask(r.Context(), req)
+	status := http.StatusNotFound
+	if found {
+		status = http.StatusOK
+	}
+
+	resp := dto.TaskResponse{
+		Task: dto.ToTaskDTO(task),
+	}
+
+	writeJSON(w, status, resp)
+}
