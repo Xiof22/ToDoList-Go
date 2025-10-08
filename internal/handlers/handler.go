@@ -3,12 +3,15 @@ package handler
 import (
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/service"
+	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 const (
 	errInvalidTitle = "Invalid title"
+	errInvalidID    = "Invalid ID"
 )
 
 type ToDoHandler struct {
@@ -47,6 +50,23 @@ func (h *ToDoHandler) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *ToDoHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r)
+	if err != nil || !isPositive(id) {
+		http.Error(w, errInvalidID, http.StatusBadRequest)
+		return
+	}
+
+	task := h.svc.GetTask(id)
+	if task == nil {
+		w.WriteHeader(http.StatusNotFound)
+		writeResponse(w, "Task not found")
+		return
+	}
+
+	writeResponse(w, task)
+}
+
 func writeResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("content-type", "text/plain")
 	switch v := data.(type) {
@@ -62,4 +82,14 @@ func writeResponse(w http.ResponseWriter, data any) {
 
 func isEmpty(str string) bool {
 	return str == ""
+}
+
+func isPositive(n int) bool {
+	return n > 0
+}
+
+func parseID(r *http.Request) (int, error) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	return strconv.Atoi(idStr)
 }

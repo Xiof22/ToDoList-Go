@@ -36,3 +36,16 @@ func (repo *ToDoRepository) GetAll() []models.Task {
 
 	return repo.Tasks
 }
+
+func (repo *ToDoRepository) Get(id int) *models.Task {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	for index, task := range repo.Tasks {
+		if task.ID == id {
+			return &repo.Tasks[index]
+		}
+	}
+
+	return nil
+}

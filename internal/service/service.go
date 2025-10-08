@@ -20,3 +20,7 @@ func (svc *ToDoService) CreateTask(title, description string) {
 func (svc *ToDoService) GetTasks() []models.Task {
 	return svc.repo.GetAll()
 }
+
+func (svc *ToDoService) GetTask(id int) *models.Task {
+	return svc.repo.Get(id)
+}
