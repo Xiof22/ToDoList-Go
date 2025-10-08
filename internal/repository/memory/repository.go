@@ -36,3 +36,16 @@ func (repo *Repository) GetAll() ([]models.Task, error) {
 
 	return repo.Tasks, nil
 }
+
+func (repo *Repository) Get(id int) (*models.Task, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	for index, task := range repo.Tasks {
+		if task.ID == id {
+			return &repo.Tasks[index], nil
+		}
+	}
+
+	return nil, nil
+}

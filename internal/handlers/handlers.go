@@ -3,12 +3,15 @@ package handlers
 import (
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/service"
+	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
 const (
 	errInvalidTitle = "Invalid title"
+	errInvalidID    = "Invalid ID"
 )
 
 type Handlers struct {
@@ -51,10 +54,42 @@ func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLIntParam(r, "id")
+	if err != nil || !isPositive(id) {
+		http.Error(w, errInvalidID, http.StatusBadRequest)
+		return
+	}
+
+	task, err := h.svc.GetTask(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if task == nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, "Task not found")
+		return
+	}
+
+	fmt.Fprint(w, task)
+}
+
 func getFormValueWithTrim(r *http.Request, key string) string {
 	return strings.TrimSpace(r.FormValue(key))
 }
 
 func isEmpty(str string) bool {
 	return str == ""
+}
+
+func isPositive(n int) bool {
+	return n > 0
+}
+
+func getURLIntParam(r *http.Request, key string) (int, error) {
+	vars := mux.Vars(r)
+	paramStr := vars[key]
+	return strconv.Atoi(paramStr)
 }

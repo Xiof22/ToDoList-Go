@@ -20,3 +20,7 @@ func (svc *Service) CreateTask(title, description string) {
 func (svc *Service) GetTasks() ([]models.Task, error) {
 	return svc.repo.GetAll()
 }
+
+func (svc *Service) GetTask(id int) (*models.Task, error) {
+	return svc.repo.Get(id)
+}
