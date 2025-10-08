@@ -50,3 +50,11 @@ func (repo *Repository) GetTasks(ctx context.Context) []models.Task {
 
 	return sortTasks(tasks)
 }
+
+func (repo *Repository) GetTask(ctx context.Context, req dto.TaskIdentifier) (*models.Task, bool) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task, found := repo.Tasks[req.ID]
+	return task, found
+}

@@ -1,7 +1,11 @@
 package handlers
 
 import (
+	"fmt"
+	"github.com/go-chi/chi"
+	"net/http"
 	"reflect"
+	"strconv"
 	"strings"
 )
 
@@ -19,4 +23,14 @@ func trimStrings(s any) {
 			field.SetString(strings.TrimSpace(field.String()))
 		}
 	}
+}
+
+func getURLIntParam(r *http.Request, key string) (int, error) {
+	paramStr := chi.URLParam(r, key)
+	id, err := strconv.Atoi(paramStr)
+	if err != nil {
+		return 0, fmt.Errorf("Failed to parse '%s'", key)
+	}
+
+	return id, nil
 }

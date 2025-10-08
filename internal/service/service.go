@@ -22,3 +22,7 @@ func (svc *Service) CreateTask(ctx context.Context, req dto.CreateTaskRequest) m
 func (svc *Service) GetTasks(ctx context.Context) []models.Task {
 	return svc.repo.GetTasks(ctx)
 }
+
+func (svc *Service) GetTask(ctx context.Context, req dto.TaskIdentifier) (*models.Task, bool) {
+	return svc.repo.GetTask(ctx, req)
+}
