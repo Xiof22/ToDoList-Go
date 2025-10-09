@@ -5,7 +5,8 @@ import (
 )
 
 type Repository interface {
-	Create(title, description string)
+	Create(title, description string) error
 	GetAll() ([]models.Task, error)
 	Get(id int) (*models.Task, error)
+	Edit(id int, title, description string) error
 }

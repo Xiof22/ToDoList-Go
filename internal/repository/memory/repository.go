@@ -1,8 +1,13 @@
 package memory
 
 import (
+	"errors"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"sync"
+)
+
+var (
+	ErrNotFound = errors.New("Task not found")
 )
 
 type Repository struct {
@@ -15,7 +20,7 @@ func New() *Repository {
 	return &Repository{nextID: 1}
 }
 
-func (repo *Repository) Create(title, description string) {
+func (repo *Repository) Create(title, description string) error {
 	task := models.Task{
 		ID:          repo.nextID,
 		Title:       title,
@@ -28,6 +33,8 @@ func (repo *Repository) Create(title, description string) {
 
 	repo.Tasks = append(repo.Tasks, task)
 	repo.nextID++
+
+	return nil
 }
 
 func (repo *Repository) GetAll() ([]models.Task, error) {
@@ -48,4 +55,19 @@ func (repo *Repository) Get(id int) (*models.Task, error) {
 	}
 
 	return nil, nil
+}
+
+func (repo *Repository) Edit(id int, title, description string) error {
+	task, _ := repo.Get(id)
+	if task == nil {
+		return ErrNotFound
+	}
+
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task.Title = title
+	task.Description = description
+
+	return nil
 }

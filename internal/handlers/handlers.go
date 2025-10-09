@@ -31,7 +31,11 @@ func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.svc.CreateTask(title, description)
+	err := h.svc.CreateTask(title, description)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	fmt.Fprint(w, "Created succefully")
@@ -74,6 +78,30 @@ func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, task)
+}
+
+func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLIntParam(r, "id")
+	if err != nil || !isPositive(id) {
+		http.Error(w, errInvalidID, http.StatusBadRequest)
+		return
+	}
+
+	title := strings.TrimSpace(r.FormValue("title"))
+	description := strings.TrimSpace(r.FormValue("description"))
+
+	if isEmpty(title) {
+		http.Error(w, errInvalidTitle, http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.EditTask(id, title, description)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprint(w, "Edited succefully")
 }
 
 func getFormValueWithTrim(r *http.Request, key string) string {

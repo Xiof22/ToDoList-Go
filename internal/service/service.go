@@ -13,8 +13,8 @@ func New(repo repository.Repository) *Service {
 	return &Service{repo: repo}
 }
 
-func (svc *Service) CreateTask(title, description string) {
-	svc.repo.Create(title, description)
+func (svc *Service) CreateTask(title, description string) error {
+	return svc.repo.Create(title, description)
 }
 
 func (svc *Service) GetTasks() ([]models.Task, error) {
@@ -23,4 +23,8 @@ func (svc *Service) GetTasks() ([]models.Task, error) {
 
 func (svc *Service) GetTask(id int) (*models.Task, error) {
 	return svc.repo.Get(id)
+}
+
+func (svc *Service) EditTask(id int, title, description string) error {
+	return svc.repo.Edit(id, title, description)
 }
