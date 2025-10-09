@@ -44,6 +44,21 @@ func (svc *ToDoService) GetTask(id int) (*models.Task, error) {
 	return svc.repo.Get(id), nil
 }
 
+func (svc *ToDoService) EditTask(id int, title, description string) error {
+	title = strings.TrimSpace(title)
+	description = strings.TrimSpace(description)
+
+	if !isValidID(id) {
+		return ErrInvalidID
+	}
+
+	if isEmptyTitle(title) {
+		return ErrEmptyTitle
+	}
+
+	return svc.repo.Edit(id, title, description)
+}
+
 func isEmptyTitle(title string) bool {
 	return title == ""
 }
