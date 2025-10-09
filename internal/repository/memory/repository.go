@@ -52,3 +52,12 @@ func (repo *Repository) GetTask(ctx context.Context, taskID models.TaskID) (mode
 
 	return *task, nil
 }
+
+func (repo *Repository) EditTask(ctx context.Context, taskID models.TaskID, task models.Task) (models.Task, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	repo.Tasks[taskID] = &task
+
+	return task, nil
+}
