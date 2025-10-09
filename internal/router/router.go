@@ -11,6 +11,7 @@ func New(h *handlers.Handlers) *chi.Mux {
 	r.Post("/tasks", h.CreateTaskHandler)
 	r.Get("/tasks", h.GetTasksHandler)
 	r.Get("/tasks/{task_id}", h.GetTaskHandler)
+	r.Patch("/tasks/{task_id}", h.EditTaskHandler)
 
 	return r
 }

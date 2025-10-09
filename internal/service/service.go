@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/Xiof22/ToDoList/internal/repository"
 )
@@ -27,4 +28,16 @@ func (svc *Service) GetTasks(ctx context.Context) ([]models.Task, error) {
 
 func (svc *Service) GetTask(ctx context.Context, taskID models.TaskID) (models.Task, error) {
 	return svc.repo.GetTask(ctx, taskID)
+}
+
+func (svc *Service) EditTask(ctx context.Context, taskID models.TaskID, req dto.EditTaskRequest) (models.Task, error) {
+	task, err := svc.repo.GetTask(ctx, taskID)
+	if err != nil {
+		return models.Task{}, errorsx.ErrTaskNotFound
+	}
+
+	task.Title = req.Title
+	task.Description = req.Description
+
+	return svc.repo.EditTask(ctx, taskID, task)
 }

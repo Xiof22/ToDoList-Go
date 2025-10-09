@@ -78,3 +78,35 @@ func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	responses.WriteJSON(w, http.StatusOK, resp)
 }
+
+func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
+	taskID, err := pathID(r, pathKeyTaskID)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
+		return
+	}
+
+	var req dto.EditTaskRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	trimStrings(&req)
+	if err := validator.Validate.Struct(req); err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	task, err := h.svc.EditTask(r.Context(), taskID, req)
+	if err != nil {
+		responses.WriteError(w, http.StatusNotFound, err)
+		return
+	}
+
+	resp := dto.TaskResponse{
+		Task: dto.ToTaskDTO(task),
+	}
+
+	responses.WriteJSON(w, http.StatusOK, resp)
+}
