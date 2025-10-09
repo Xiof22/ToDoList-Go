@@ -58,3 +58,14 @@ func (repo *Repository) GetTask(ctx context.Context, req dto.TaskIdentifier) (*m
 	task, found := repo.Tasks[req.ID]
 	return task, found
 }
+
+func (repo *Repository) EditTask(ctx context.Context, req dto.EditTaskRequest) models.Task {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task := repo.Tasks[req.ID]
+	task.Title = req.Title
+	task.Description = req.Description
+
+	return *task
+}
