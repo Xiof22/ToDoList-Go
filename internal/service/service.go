@@ -26,3 +26,13 @@ func (svc *Service) GetTasks(ctx context.Context) []models.Task {
 func (svc *Service) GetTask(ctx context.Context, req dto.TaskIdentifier) (*models.Task, bool) {
 	return svc.repo.GetTask(ctx, req)
 }
+
+func (svc *Service) EditTask(ctx context.Context, req dto.EditTaskRequest) (models.Task, error) {
+	if _, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
+		ID: req.ID,
+	}); !found {
+		return models.Task{}, ErrTaskNotFound
+	}
+
+	return svc.repo.EditTask(ctx, req), nil
+}
