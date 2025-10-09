@@ -57,11 +57,31 @@ func (h *ToDoHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if task == nil {
+		w.WriteHeader(http.StatusNotFound)
 		writeResponse(w, "Task not found")
 		return
 	}
 
 	writeResponse(w, task)
+}
+
+func (h *ToDoHandler) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r)
+	if err != nil {
+		http.Error(w, "ID parsing error", http.StatusBadRequest)
+		return
+	}
+
+	title := r.FormValue("title")
+	description := r.FormValue("description")
+
+	err = h.svc.EditTask(id, title, description)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	writeResponse(w, "Edited succefully")
 }
 
 func writeResponse(w http.ResponseWriter, data any) {

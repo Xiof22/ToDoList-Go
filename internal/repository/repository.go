@@ -2,8 +2,11 @@ package repository
 
 import (
 	"sync"
+	"errors"
 	"github.com/Xiof22/ToDoList/internal/models"
 )
+
+var ErrNotFound = errors.New("Task not found")
 
 type ToDoRepository struct {
 	mu sync.Mutex
@@ -41,5 +44,19 @@ func (repo *ToDoRepository) Get(id int) *models.Task {
 		}
 	}
 
+	return nil
+}
+
+func (repo *ToDoRepository) Edit(id int, title, description string) error {
+	task := repo.Get(id)
+	if task == nil {
+		return ErrNotFound
+	}
+
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task.Title = title
+	task.Description = description
 	return nil
 }
