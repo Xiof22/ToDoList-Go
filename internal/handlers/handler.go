@@ -67,6 +67,30 @@ func (h *ToDoHandler) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 	writeResponse(w, task)
 }
 
+func (h *ToDoHandler) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r)
+	if err != nil || !isPositive(id) {
+		http.Error(w, errInvalidID, http.StatusBadRequest)
+		return
+	}
+
+	title := strings.TrimSpace(r.FormValue("title"))
+	description := strings.TrimSpace(r.FormValue("description"))
+
+	if isEmpty(title) {
+		http.Error(w, errInvalidTitle, http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.EditTask(id, title, description)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	writeResponse(w, "Edited succefully")
+}
+
 func writeResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("content-type", "text/plain")
 	switch v := data.(type) {

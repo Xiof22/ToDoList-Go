@@ -24,3 +24,7 @@ func (svc *ToDoService) GetTasks() []models.Task {
 func (svc *ToDoService) GetTask(id int) *models.Task {
 	return svc.repo.Get(id)
 }
+
+func (svc *ToDoService) EditTask(id int, title, description string) error {
+	return svc.repo.Edit(id, title, description)
+}
