@@ -110,3 +110,33 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	responses.WriteJSON(w, http.StatusOK, resp)
 }
+
+func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	taskID, err := pathID(r, pathKeyTaskID)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
+		return
+	}
+
+	if err := h.svc.CompleteTask(r.Context(), taskID); err != nil {
+		responses.WriteError(w, responses.MapError(err), err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	taskID, err := pathID(r, pathKeyTaskID)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
+		return
+	}
+
+	if err := h.svc.UncompleteTask(r.Context(), taskID); err != nil {
+		responses.WriteError(w, responses.MapError(err), err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
