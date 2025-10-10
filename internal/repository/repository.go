@@ -85,3 +85,20 @@ func (repo *ToDoRepository) Complete(id int) error {
 	task.IsCompleted = true
 	return nil
 }
+
+func (repo *ToDoRepository) Uncomplete(id int) error {
+	task := repo.Get(id)
+	if task == nil {
+		return ErrNotFound
+	}
+
+	if !task.IsCompleted {
+		return errors.New("Task is already uncompleted")
+	}
+
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task.IsCompleted = false
+	return nil
+}
