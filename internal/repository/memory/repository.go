@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("Task not found")
+	ErrNotFound         = errors.New("Task not found")
+	ErrAlreadyCompleted = errors.New("Task is already completed")
 )
 
 type Repository struct {
@@ -69,5 +70,22 @@ func (repo *Repository) Edit(id int, title, description string) error {
 	task.Title = title
 	task.Description = description
 
+	return nil
+}
+
+func (repo *Repository) Complete(id int) error {
+	task, _ := repo.Get(id)
+	if task == nil {
+		return ErrNotFound
+	}
+
+	if task.IsCompleted {
+		return ErrAlreadyCompleted
+	}
+
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task.IsCompleted = true
 	return nil
 }

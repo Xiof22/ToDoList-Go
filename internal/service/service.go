@@ -28,3 +28,7 @@ func (svc *Service) GetTask(id int) (*models.Task, error) {
 func (svc *Service) EditTask(id int, title, description string) error {
 	return svc.repo.Edit(id, title, description)
 }
+
+func (svc *Service) CompleteTask(id int) error {
+	return svc.repo.Complete(id)
+}

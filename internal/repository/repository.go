@@ -9,4 +9,5 @@ type Repository interface {
 	GetAll() ([]models.Task, error)
 	Get(id int) (*models.Task, error)
 	Edit(id int, title, description string) error
+	Complete(id int) error
 }
