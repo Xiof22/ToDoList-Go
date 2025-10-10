@@ -59,6 +59,14 @@ func (svc *ToDoService) EditTask(id int, title, description string) error {
 	return svc.repo.Edit(id, title, description)
 }
 
+func (svc *ToDoService) CompleteTask(id int) error {
+	if !isValidID(id) {
+		return ErrInvalidID
+	}
+
+	return svc.repo.Complete(id)
+}
+
 func isEmptyTitle(title string) bool {
 	return title == ""
 }
