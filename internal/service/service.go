@@ -36,3 +36,16 @@ func (svc *Service) EditTask(ctx context.Context, req dto.EditTaskRequest) (mode
 
 	return svc.repo.EditTask(ctx, req), nil
 }
+
+func (svc *Service) CompleteTask(ctx context.Context, req dto.TaskIdentifier) error {
+	if task, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
+		ID: req.ID,
+	}); !found {
+		return ErrTaskNotFound
+	} else if task.IsCompleted {
+		return ErrAlreadyCompleted
+	}
+
+	svc.repo.CompleteTask(ctx, req)
+	return nil
+}

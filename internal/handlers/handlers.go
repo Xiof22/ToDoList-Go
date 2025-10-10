@@ -86,6 +86,7 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	trimStrings(&req)
 	if err := validator.Validate.Struct(req); err != nil {
 		writeError(w, http.StatusBadRequest, err)
 		return
@@ -102,4 +103,25 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, resp)
+}
+
+func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLIntParam(r, "id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	req := dto.TaskIdentifier{ID: id}
+	if err := validator.Validate.Struct(&req); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.svc.CompleteTask(r.Context(), req); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
