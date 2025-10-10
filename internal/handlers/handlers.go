@@ -120,6 +120,22 @@ func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, "Completed task succefully")
 }
 
+func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLIntParam(r, "id")
+	if err != nil || !isPositive(id) {
+		http.Error(w, errInvalidID, http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.UncompleteTask(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprint(w, "Uncompleted task succefully")
+}
+
 func getFormValueWithTrim(r *http.Request, key string) string {
 	return strings.TrimSpace(r.FormValue(key))
 }

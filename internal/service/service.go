@@ -32,3 +32,7 @@ func (svc *Service) EditTask(id int, title, description string) error {
 func (svc *Service) CompleteTask(id int) error {
 	return svc.repo.Complete(id)
 }
+
+func (svc *Service) UncompleteTask(id int) error {
+	return svc.repo.Uncomplete(id)
+}

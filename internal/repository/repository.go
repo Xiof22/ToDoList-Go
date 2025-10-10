@@ -10,4 +10,5 @@ type Repository interface {
 	Get(id int) (*models.Task, error)
 	Edit(id int, title, description string) error
 	Complete(id int) error
+	Uncomplete(id int) error
 }
