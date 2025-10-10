@@ -100,6 +100,22 @@ func (h *ToDoHandler) CompleteTaskHandler(w http.ResponseWriter, r *http.Request
 	writeResponse(w, "Completed task succefully")
 }
 
+func (h *ToDoHandler) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r)
+	if err != nil {
+		http.Error(w, "ID parsing error", http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.UncompleteTask(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	writeResponse(w, "Uncompleted task succefully")
+}
+
 func writeResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("content-type", "text/plain")
 	switch v := data.(type) {
