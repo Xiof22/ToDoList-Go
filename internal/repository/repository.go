@@ -11,13 +11,16 @@ var (
 )
 
 type ToDoRepository struct {
-	Tasks  []models.Task
 	mu     sync.Mutex
+	Tasks  map[int]models.Task
 	nextID int
 }
 
 func NewToDoRepository() *ToDoRepository {
-	return &ToDoRepository{nextID: 1}
+	return &ToDoRepository{
+		Tasks:  make(map[int]models.Task),
+		nextID: 1,
+	}
 }
 
 func (repo *ToDoRepository) Create(title, description string) {
@@ -31,7 +34,7 @@ func (repo *ToDoRepository) Create(title, description string) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	repo.Tasks = append(repo.Tasks, task)
+	repo.Tasks[repo.nextID] = task
 	repo.nextID++
 }
 
@@ -39,39 +42,50 @@ func (repo *ToDoRepository) GetAll() []models.Task {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	return repo.Tasks
+	taskCount := len(repo.Tasks)
+	tasks := make([]models.Task, 0, taskCount)
+
+	for _, task := range repo.Tasks {
+		tasks = append(tasks, task)
+	}
+
+	return tasks
 }
 
 func (repo *ToDoRepository) Get(id int) *models.Task {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	for index, task := range repo.Tasks {
-		if task.ID == id {
-			return &repo.Tasks[index]
-		}
+	task, found := repo.Tasks[id]
+	if !found {
+		return nil
 	}
 
-	return nil
+	return &task
 }
 
 func (repo *ToDoRepository) Edit(id int, title, description string) error {
-	task := repo.Get(id)
-	if task == nil {
-		return ErrNotFound
-	}
-
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
+	task, found := repo.Tasks[id]
+	if !found {
+		return ErrNotFound
+	}
+
 	task.Title = title
 	task.Description = description
+	repo.Tasks[id] = task
+
 	return nil
 }
 
 func (repo *ToDoRepository) Complete(id int) error {
-	task := repo.Get(id)
-	if task == nil {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task, found := repo.Tasks[id]
+	if !found {
 		return ErrNotFound
 	}
 
@@ -79,16 +93,18 @@ func (repo *ToDoRepository) Complete(id int) error {
 		return errors.New("Task is already completed")
 	}
 
-	repo.mu.Lock()
-	defer repo.mu.Unlock()
-
 	task.IsCompleted = true
+	repo.Tasks[id] = task
+
 	return nil
 }
 
 func (repo *ToDoRepository) Uncomplete(id int) error {
-	task := repo.Get(id)
-	if task == nil {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task, found := repo.Tasks[id]
+	if !found {
 		return ErrNotFound
 	}
 
@@ -96,9 +112,21 @@ func (repo *ToDoRepository) Uncomplete(id int) error {
 		return errors.New("Task is already uncompleted")
 	}
 
+	task.IsCompleted = false
+	repo.Tasks[id] = task
+
+	return nil
+}
+
+func (repo *ToDoRepository) Delete(id int) error {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	task.IsCompleted = false
+	_, found := repo.Tasks[id]
+	if !found {
+		return ErrNotFound
+	}
+
+	delete(repo.Tasks, id)
 	return nil
 }
