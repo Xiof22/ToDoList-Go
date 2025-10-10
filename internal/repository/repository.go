@@ -12,4 +12,5 @@ type Repository interface {
 	GetTask(ctx context.Context, req dto.TaskIdentifier) (*models.Task, bool)
 	EditTask(ctx context.Context, dto dto.EditTaskRequest) models.Task
 	CompleteTask(ctx context.Context, req dto.TaskIdentifier)
+	UncompleteTask(ctx context.Context, req dto.TaskIdentifier)
 }
