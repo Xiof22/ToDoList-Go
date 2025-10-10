@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"errors"
 	"fmt"
+	"github.com/Xiof22/ToDoList/internal/service"
 	"github.com/go-chi/chi"
 	"net/http"
 	"reflect"
@@ -33,4 +35,17 @@ func getURLIntParam(r *http.Request, key string) (int, error) {
 	}
 
 	return id, nil
+}
+
+func mapTaskError(err error) int {
+	switch {
+	case errors.Is(err, service.ErrAlreadyCompleted):
+		return http.StatusBadRequest
+
+	case errors.Is(err, service.ErrTaskNotFound):
+		return http.StatusNotFound
+
+	default:
+		return http.StatusInternalServerError
+	}
 }

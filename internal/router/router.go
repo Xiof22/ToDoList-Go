@@ -12,6 +12,7 @@ func New(h *handlers.Handlers) *chi.Mux {
 	r.Get("/tasks", h.GetTasksHandler)
 	r.Get("/tasks/{id}", h.GetTaskHandler)
 	r.Patch("/tasks/{id}", h.EditTaskHandler)
+	r.Patch("/tasks/{id}/complete", h.CompleteTaskHandler)
 
 	return r
 }

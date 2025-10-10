@@ -69,3 +69,11 @@ func (repo *Repository) EditTask(ctx context.Context, req dto.EditTaskRequest) m
 
 	return *task
 }
+
+func (repo *Repository) CompleteTask(ctx context.Context, req dto.TaskIdentifier) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task := repo.Tasks[req.ID]
+	task.IsCompleted = true
+}
