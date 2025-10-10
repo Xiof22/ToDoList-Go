@@ -33,11 +33,43 @@ func (svc *Service) GetTask(ctx context.Context, taskID models.TaskID) (models.T
 func (svc *Service) EditTask(ctx context.Context, taskID models.TaskID, req dto.EditTaskRequest) (models.Task, error) {
 	task, err := svc.repo.GetTask(ctx, taskID)
 	if err != nil {
-		return models.Task{}, errorsx.ErrTaskNotFound
+		return models.Task{}, err
 	}
 
 	task.Title = req.Title
 	task.Description = req.Description
 
 	return svc.repo.EditTask(ctx, taskID, task)
+}
+
+func (svc *Service) CompleteTask(ctx context.Context, taskID models.TaskID) error {
+	task, err := svc.repo.GetTask(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	if task.IsCompleted {
+		return errorsx.ErrAlreadyCompleted
+	}
+
+	task.IsCompleted = true
+
+	_, err = svc.repo.EditTask(ctx, taskID, task)
+	return err
+}
+
+func (svc *Service) UncompleteTask(ctx context.Context, taskID models.TaskID) error {
+	task, err := svc.repo.GetTask(ctx, taskID)
+	if err != nil {
+		return err
+	}
+
+	if !task.IsCompleted {
+		return errorsx.ErrAlreadyUncompleted
+	}
+
+	task.IsCompleted = false
+
+	_, err = svc.repo.EditTask(ctx, taskID, task)
+	return err
 }
