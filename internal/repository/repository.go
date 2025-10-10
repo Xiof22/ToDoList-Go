@@ -68,3 +68,20 @@ func (repo *ToDoRepository) Edit(id int, title, description string) error {
 	task.Description = description
 	return nil
 }
+
+func (repo *ToDoRepository) Complete(id int) error {
+	task := repo.Get(id)
+	if task == nil {
+		return ErrNotFound
+	}
+
+	if task.IsCompleted {
+		return errors.New("Task is already completed")
+	}
+
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	task.IsCompleted = true
+	return nil
+}
