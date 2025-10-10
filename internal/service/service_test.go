@@ -32,12 +32,9 @@ func TestEditTask_Success(t *testing.T) {
 
 	gotTask, err := svc.EditTask(t.Context(), oldTask.ID, req)
 	assert.NoError(t, err)
-	assert.Equal(t, wantTask.ID, gotTask.ID)
-	assert.Equal(t, wantTask.Title, gotTask.Title)
-	assert.Equal(t, wantTask.Description, gotTask.Description)
+	assert.Equal(t, wantTask, gotTask)
 
 	repo.AssertExpectations(t)
-
 }
 
 func TestEditTask_RepoErrors(t *testing.T) {
@@ -57,9 +54,9 @@ func TestEditTask_RepoErrors(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := mocks.NewRepository(t)
 			svc := New(repo)
-			taskID := models.TaskID(uuid.Nil)
+			taskID := models.TaskID(uuid.New())
 
-			repo.On("GetTask", t.Context(), taskID).Return(models.Task{}, tt.mockErr)
+			repo.On("GetTask", mock.Anything, taskID).Return(models.Task{}, tt.mockErr)
 
 			task, err := svc.EditTask(t.Context(), taskID, dto.EditTaskRequest{})
 			assert.Equal(t, models.Task{}, task)
@@ -68,4 +65,119 @@ func TestEditTask_RepoErrors(t *testing.T) {
 			repo.AssertExpectations(t)
 		})
 	}
+}
+
+func TestCompleteTask_Success(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	svc := New(repo)
+	task := models.NewTask("Test Title", "Test Description")
+	completedTask := task
+	completedTask.IsCompleted = true
+
+	repo.On("GetTask", mock.Anything, task.ID).Return(task, nil)
+	repo.On("EditTask", mock.Anything, task.ID, completedTask).Return(completedTask, nil)
+
+	err := svc.CompleteTask(t.Context(), task.ID)
+	assert.NoError(t, err)
+
+	repo.AssertExpectations(t)
+}
+
+func TestCompleteTask_RepoErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		mockErr error
+		wantErr error
+	}{
+		{
+			name:    "Task not found",
+			mockErr: errorsx.ErrTaskNotFound,
+			wantErr: errorsx.ErrTaskNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := mocks.NewRepository(t)
+			svc := New(repo)
+			taskID := models.TaskID(uuid.New())
+
+			repo.On("GetTask", mock.Anything, taskID).Return(models.Task{}, tt.mockErr)
+
+			err := svc.CompleteTask(t.Context(), taskID)
+			assert.ErrorIs(t, err, tt.wantErr)
+
+			repo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestCompleteTask_AlreadyCompleted(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	svc := New(repo)
+	task := models.NewTask("Test Title", "Test Description")
+	task.IsCompleted = true
+
+	repo.On("GetTask", mock.Anything, task.ID).Return(task, nil)
+
+	err := svc.CompleteTask(t.Context(), task.ID)
+	assert.ErrorIs(t, err, errorsx.ErrAlreadyCompleted)
+
+	repo.AssertExpectations(t)
+}
+
+func TestUncompleteTask_Success(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	svc := New(repo)
+	task := models.NewTask("Test Title", "Test Description")
+	completedTask := task
+	completedTask.IsCompleted = true
+
+	repo.On("GetTask", mock.Anything, completedTask.ID).Return(completedTask, nil)
+	repo.On("EditTask", mock.Anything, completedTask.ID, task).Return(task, nil)
+
+	err := svc.UncompleteTask(t.Context(), completedTask.ID)
+	assert.NoError(t, err)
+
+	repo.AssertExpectations(t)
+}
+
+func TestUncompleteTask_RepoErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		mockErr error
+		wantErr error
+	}{
+		{
+			name:    "Task not found",
+			mockErr: errorsx.ErrTaskNotFound,
+			wantErr: errorsx.ErrTaskNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := mocks.NewRepository(t)
+			svc := New(repo)
+			taskID := models.TaskID(uuid.New())
+
+			repo.On("GetTask", mock.Anything, taskID).Return(models.Task{}, tt.mockErr)
+
+			err := svc.CompleteTask(t.Context(), taskID)
+			assert.ErrorIs(t, err, tt.wantErr)
+
+			repo.AssertExpectations(t)
+		})
+	}
+}
+
+func TestUncompleteTask_AlreadyUncompleted(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	svc := New(repo)
+	task := models.NewTask("Test Title", "Test Description")
+
+	repo.On("GetTask", mock.Anything, task.ID).Return(task, nil)
+
+	err := svc.UncompleteTask(t.Context(), task.ID)
+	assert.ErrorIs(t, err, errorsx.ErrAlreadyUncompleted)
 }
