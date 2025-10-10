@@ -75,6 +75,14 @@ func (svc *ToDoService) UncompleteTask(id int) error {
 	return svc.repo.Uncomplete(id)
 }
 
+func (svc *ToDoService) DeleteTask(id int) error {
+	if !isValidID(id) {
+		return ErrInvalidID
+	}
+
+	return svc.repo.Delete(id)
+}
+
 func isEmptyTitle(title string) bool {
 	return title == ""
 }

@@ -94,3 +94,17 @@ func (repo *ToDoRepository) Uncomplete(id int) error {
 	task.IsCompleted = false
 	return nil
 }
+
+func (repo *ToDoRepository) Delete(id int) error {
+	for index, task := range repo.Tasks {
+		if task.ID == id {
+			repo.mu.Lock()
+			defer repo.mu.Unlock()
+
+			repo.Tasks = append(repo.Tasks[:index], repo.Tasks[index + 1:]...)
+			return nil
+		}
+	}
+
+	return ErrNotFound
+}

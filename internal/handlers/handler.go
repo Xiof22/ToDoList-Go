@@ -116,6 +116,22 @@ func (h *ToDoHandler) UncompleteTaskHandler(w http.ResponseWriter, r *http.Reque
 	writeResponse(w, "Uncompleted task succefully")
 }
 
+func (h *ToDoHandler) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := parseID(r)
+	if err != nil {
+		http.Error(w, "ID parsing error", http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.DeleteTask(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	writeResponse(w, "Deleted succefully")
+}
+
 func writeResponse(w http.ResponseWriter, data any) {
 	w.Header().Set("content-type", "text/plain")
 	switch v := data.(type) {
