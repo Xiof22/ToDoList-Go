@@ -49,3 +49,16 @@ func (svc *Service) CompleteTask(ctx context.Context, req dto.TaskIdentifier) er
 	svc.repo.CompleteTask(ctx, req)
 	return nil
 }
+
+func (svc *Service) UncompleteTask(ctx context.Context, req dto.TaskIdentifier) error {
+	if task, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
+		ID: req.ID,
+	}); !found {
+		return ErrTaskNotFound
+	} else if !task.IsCompleted {
+		return ErrAlreadyUncompleted
+	}
+
+	svc.repo.UncompleteTask(ctx, req)
+	return nil
+}

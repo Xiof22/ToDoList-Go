@@ -39,7 +39,8 @@ func getURLIntParam(r *http.Request, key string) (int, error) {
 
 func mapTaskError(err error) int {
 	switch {
-	case errors.Is(err, service.ErrAlreadyCompleted):
+	case errors.Is(err, service.ErrAlreadyCompleted),
+		errors.Is(err, service.ErrAlreadyUncompleted):
 		return http.StatusBadRequest
 
 	case errors.Is(err, service.ErrTaskNotFound):

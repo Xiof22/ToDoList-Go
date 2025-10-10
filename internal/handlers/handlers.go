@@ -125,3 +125,24 @@ func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLIntParam(r, "id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	req := dto.TaskIdentifier{ID: id}
+	if err := validator.Validate.Struct(&req); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.svc.UncompleteTask(r.Context(), req); err != nil {
+		writeError(w, mapTaskError(err), err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
