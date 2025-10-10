@@ -19,6 +19,7 @@ func main() {
 	r.HandleFunc("/tasks", h.GetTasksHandler).Methods("GET")
 	r.HandleFunc("/tasks/{id}", h.GetTaskHandler).Methods("GET")
 	r.HandleFunc("/tasks/{id}", h.EditTaskHandler).Methods("PATCH")
+	r.HandleFunc("/tasks/{id}/complete", h.CompleteTaskHandler).Methods("PATCH")
 
 	fmt.Println("Serving start...")
 	err := http.ListenAndServe(":8080", r)
