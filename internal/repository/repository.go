@@ -4,10 +4,12 @@ import (
 	"errors"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"sync"
+	"time"
 )
 
 var (
-	ErrNotFound = errors.New("Task not found")
+	ErrNotFound        = errors.New("Task not found")
+	ErrInvalidDeadline = errors.New("Invalid deadline")
 )
 
 type ToDoRepository struct {
@@ -23,12 +25,20 @@ func NewToDoRepository() *ToDoRepository {
 	}
 }
 
-func (repo *ToDoRepository) Create(title, description string) {
+func (repo *ToDoRepository) Create(title, description string, deadline time.Time) error {
+	now := time.Now()
+
+	if deadline.Before(now) && !deadline.IsZero() {
+		return ErrInvalidDeadline
+	}
+
 	task := models.Task{
 		ID:          repo.nextID,
 		Title:       title,
 		Description: description,
 		IsCompleted: false,
+		CreatedAt:   now,
+		Deadline:    deadline,
 	}
 
 	repo.mu.Lock()
@@ -36,6 +46,8 @@ func (repo *ToDoRepository) Create(title, description string) {
 
 	repo.Tasks[repo.nextID] = task
 	repo.nextID++
+
+	return nil
 }
 
 func (repo *ToDoRepository) GetAll() []models.Task {
@@ -64,7 +76,7 @@ func (repo *ToDoRepository) Get(id int) *models.Task {
 	return &task
 }
 
-func (repo *ToDoRepository) Edit(id int, title, description string) error {
+func (repo *ToDoRepository) Edit(id int, title, description string, deadline time.Time) error {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -73,8 +85,14 @@ func (repo *ToDoRepository) Edit(id int, title, description string) error {
 		return ErrNotFound
 	}
 
+	if deadline.Before(task.CreatedAt) && !deadline.IsZero() {
+		return ErrInvalidDeadline
+	}
+
 	task.Title = title
 	task.Description = description
+	task.Deadline = deadline
+	task.UpdatedAt = time.Now()
 	repo.Tasks[id] = task
 
 	return nil

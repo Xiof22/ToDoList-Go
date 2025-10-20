@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
-	errInvalidTitle = "Invalid title"
-	errInvalidID    = "Invalid ID"
+	errInvalidTitle    = "Invalid title"
+	errInvalidID       = "Invalid ID"
+	errInvalidDeadline = "Unexpected deadline format"
+	timeLayout         = "2006-01-02T03:04"
 )
 
 type ToDoHandler struct {
@@ -25,13 +28,24 @@ func NewToDoHandler(svc *service.ToDoService) *ToDoHandler {
 func (h *ToDoHandler) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	title := strings.TrimSpace(r.FormValue("title"))
 	description := strings.TrimSpace(r.FormValue("description"))
+	deadlineStr := strings.TrimSpace(r.FormValue("deadline"))
 
 	if isEmpty(title) {
 		http.Error(w, errInvalidTitle, http.StatusBadRequest)
 		return
 	}
 
-	h.svc.CreateTask(title, description)
+	deadline, err := time.Parse(timeLayout, deadlineStr)
+	if err != nil && !isEmpty(deadlineStr) {
+		http.Error(w, errInvalidDeadline, http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.CreateTask(title, description, deadline)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	w.WriteHeader(http.StatusCreated)
 	writeResponse(w, "Created succefully")
@@ -76,13 +90,20 @@ func (h *ToDoHandler) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	title := strings.TrimSpace(r.FormValue("title"))
 	description := strings.TrimSpace(r.FormValue("description"))
+	deadlineStr := strings.TrimSpace(r.FormValue("deadline"))
 
 	if isEmpty(title) {
 		http.Error(w, errInvalidTitle, http.StatusBadRequest)
 		return
 	}
 
-	err = h.svc.EditTask(id, title, description)
+	deadline, err := time.Parse(timeLayout, deadlineStr)
+	if err != nil && !isEmpty(deadlineStr) {
+		http.Error(w, errInvalidDeadline, http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.EditTask(id, title, description, deadline)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

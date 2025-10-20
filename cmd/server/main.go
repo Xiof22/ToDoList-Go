@@ -7,9 +7,12 @@ import (
 	"github.com/Xiof22/ToDoList/internal/service"
 	"github.com/gorilla/mux"
 	"net/http"
+	"time"
 )
 
 func main() {
+	setTimezone("Asia/Ashgabat")
+
 	repo := repository.NewToDoRepository()
 	svc := service.NewToDoService(repo)
 	h := handler.NewToDoHandler(svc)
@@ -28,4 +31,15 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func setTimezone(location string) {
+	loc, err := time.LoadLocation(location)
+	if err != nil {
+		fmt.Println("Location loading error:", err)
+		fmt.Println("Leaving default timezone (UTC +0000)")
+		return
+	}
+
+	time.Local = loc
 }

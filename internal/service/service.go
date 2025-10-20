@@ -3,6 +3,7 @@ package service
 import (
 	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/Xiof22/ToDoList/internal/repository"
+	"time"
 )
 
 type ToDoService struct {
@@ -13,8 +14,8 @@ func NewToDoService(repo *repository.ToDoRepository) *ToDoService {
 	return &ToDoService{repo: repo}
 }
 
-func (svc *ToDoService) CreateTask(title, description string) {
-	svc.repo.Create(title, description)
+func (svc *ToDoService) CreateTask(title, description string, deadline time.Time) error {
+	return svc.repo.Create(title, description, deadline)
 }
 
 func (svc *ToDoService) GetTasks() []models.Task {
@@ -25,8 +26,8 @@ func (svc *ToDoService) GetTask(id int) *models.Task {
 	return svc.repo.Get(id)
 }
 
-func (svc *ToDoService) EditTask(id int, title, description string) error {
-	return svc.repo.Edit(id, title, description)
+func (svc *ToDoService) EditTask(id int, title, description string, deadline time.Time) error {
+	return svc.repo.Edit(id, title, description, deadline)
 }
 
 func (svc *ToDoService) CompleteTask(id int) error {
