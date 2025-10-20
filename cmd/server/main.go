@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	_ "github.com/Xiof22/ToDoList/config"
 	"github.com/Xiof22/ToDoList/internal/handlers"
 	"github.com/Xiof22/ToDoList/internal/repository/memory"
 	"github.com/Xiof22/ToDoList/internal/router"

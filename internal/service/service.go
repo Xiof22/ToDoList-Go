@@ -28,10 +28,12 @@ func (svc *Service) GetTask(ctx context.Context, req dto.TaskIdentifier) (*model
 }
 
 func (svc *Service) EditTask(ctx context.Context, req dto.EditTaskRequest) (models.Task, error) {
-	if _, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
+	if task, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
 		ID: req.ID,
 	}); !found {
 		return models.Task{}, ErrTaskNotFound
+	} else if req.Deadline.Value.Before(task.CreatedAt) && !req.Deadline.Value.IsZero() {
+		return models.Task{}, ErrDeadlineBeforeCreation
 	}
 
 	return svc.repo.EditTask(ctx, req), nil

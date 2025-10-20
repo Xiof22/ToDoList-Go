@@ -94,7 +94,7 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 
 	task, err := h.svc.EditTask(r.Context(), req)
 	if err != nil {
-		writeError(w, http.StatusNotFound, err)
+		writeError(w, mapTaskError(err), err)
 		return
 	}
 
