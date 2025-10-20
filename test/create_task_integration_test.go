@@ -38,6 +38,30 @@ func TestCreateTask(t *testing.T) {
 			},
 		},
 		{
+			name: "Deadline before creation",
+			payload: map[string]any{
+				"title":       sampleTaskMap["title"],
+				"description": sampleTaskMap["description"],
+				"deadline":    pastDeadline,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrValidation("Deadline", "future_or_empty").Error()},
+			},
+		},
+		{
+			name: "Unexpected deadline format",
+			payload: map[string]any{
+				"title":       sampleTaskMap["title"],
+				"description": sampleTaskMap["description"],
+				"deadline":    invalidFormatDeadline,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrInvalidDeadlineFormat.Error()},
+			},
+		},
+		{
 			name:       "Success",
 			payload:    sampleTaskMap,
 			wantStatus: http.StatusCreated,
