@@ -13,7 +13,8 @@ func MapError(err error) int {
 		return http.StatusNotFound
 
 	case errors.Is(err, errorsx.ErrAlreadyCompleted),
-		errors.Is(err, errorsx.ErrAlreadyUncompleted):
+		errors.Is(err, errorsx.ErrAlreadyUncompleted),
+		errors.Is(err, errorsx.ErrDeadlineBeforeCreation):
 		return http.StatusBadRequest
 
 	default:

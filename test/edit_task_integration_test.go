@@ -64,6 +64,32 @@ func TestEditTask(t *testing.T) {
 			},
 		},
 		{
+			name:   "Deadline before creation",
+			taskID: taskID,
+			payload: map[string]any{
+				"title":       sampleTaskMap["title"],
+				"description": sampleTaskMap["description"],
+				"deadline":    pastDeadline,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrDeadlineBeforeCreation.Error()},
+			},
+		},
+		{
+			name:   "Unexpected deadline format",
+			taskID: taskID,
+			payload: map[string]any{
+				"title":       sampleTaskMap["title"],
+				"description": sampleTaskMap["description"],
+				"deadline":    invalidFormatDeadline,
+			},
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrInvalidDeadlineFormat.Error()},
+			},
+		},
+		{
 			name:       "Success",
 			taskID:     taskID,
 			payload:    editedTaskMap,

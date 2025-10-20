@@ -1,6 +1,9 @@
 package models
 
-import "github.com/google/uuid"
+import (
+	"github.com/google/uuid"
+	"time"
+)
 
 type TaskID uuid.UUID
 
@@ -13,12 +16,16 @@ type Task struct {
 	Title       string
 	Description string
 	IsCompleted bool
+	CreatedAt   time.Time
+	Deadline    time.Time
+	UpdatedAt   *time.Time
 }
 
-func NewTask(title, description string) Task {
+func NewTask(title, description string, deadline time.Time) Task {
 	return Task{
 		ID:          TaskID(uuid.New()),
 		Title:       title,
 		Description: description,
+		Deadline:    deadline,
 	}
 }

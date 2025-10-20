@@ -9,22 +9,24 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"testing"
+	"time"
 )
 
 func TestEditTask_Success(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	svc := New(repo)
-
-	oldTask := models.NewTask("Test Title", "Test Description")
+	oldTask := models.NewTask("Test Title", "Test Description", time.Time{})
 	req := dto.EditTaskRequest{
 		Title:       "Edited " + oldTask.Title,
 		Description: "Edited " + oldTask.Description,
+		Deadline:    dto.DeadlineRequest{Value: time.Now().Add(1 * time.Hour)},
 	}
 
 	wantTask := models.Task{
 		ID:          oldTask.ID,
 		Title:       req.Title,
 		Description: req.Description,
+		Deadline:    req.Deadline.Value,
 	}
 
 	repo.On("GetTask", mock.Anything, oldTask.ID).Return(oldTask, nil)
@@ -67,10 +69,31 @@ func TestEditTask_RepoErrors(t *testing.T) {
 	}
 }
 
+func TestEditTask_DeadlineBeforeCreation(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	svc := New(repo)
+	task := models.NewTask("Test Title", "Test Description", time.Time{})
+	task.CreatedAt = time.Now()
+	req := dto.EditTaskRequest{
+		Title:       task.Title,
+		Description: task.Description,
+		Deadline: dto.DeadlineRequest{
+			Value: task.CreatedAt.Add(-1 * time.Second),
+		},
+	}
+
+	repo.On("GetTask", t.Context(), task.ID).Return(task, nil)
+
+	_, err := svc.EditTask(t.Context(), task.ID, req)
+	assert.ErrorIs(t, err, errorsx.ErrDeadlineBeforeCreation)
+
+	repo.AssertExpectations(t)
+}
+
 func TestCompleteTask_Success(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	svc := New(repo)
-	task := models.NewTask("Test Title", "Test Description")
+	task := models.NewTask("Test Title", "Test Description", time.Time{})
 	completedTask := task
 	completedTask.IsCompleted = true
 
@@ -115,7 +138,7 @@ func TestCompleteTask_RepoErrors(t *testing.T) {
 func TestCompleteTask_AlreadyCompleted(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	svc := New(repo)
-	task := models.NewTask("Test Title", "Test Description")
+	task := models.NewTask("Test Title", "Test Description", time.Time{})
 	task.IsCompleted = true
 
 	repo.On("GetTask", mock.Anything, task.ID).Return(task, nil)
@@ -129,7 +152,7 @@ func TestCompleteTask_AlreadyCompleted(t *testing.T) {
 func TestUncompleteTask_Success(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	svc := New(repo)
-	task := models.NewTask("Test Title", "Test Description")
+	task := models.NewTask("Test Title", "Test Description", time.Time{})
 	completedTask := task
 	completedTask.IsCompleted = true
 
@@ -174,7 +197,7 @@ func TestUncompleteTask_RepoErrors(t *testing.T) {
 func TestUncompleteTask_AlreadyUncompleted(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	svc := New(repo)
-	task := models.NewTask("Test Title", "Test Description")
+	task := models.NewTask("Test Title", "Test Description", time.Time{})
 
 	repo.On("GetTask", mock.Anything, task.ID).Return(task, nil)
 
@@ -185,7 +208,7 @@ func TestUncompleteTask_AlreadyUncompleted(t *testing.T) {
 func TestDeleteTask_Success(t *testing.T) {
 	repo := mocks.NewRepository(t)
 	svc := New(repo)
-	task := models.NewTask("Test Title", "Test Description")
+	task := models.NewTask("Test Title", "Test Description", time.Time{})
 
 	repo.On("GetTask", mock.Anything, task.ID).Return(task, nil)
 	repo.On("DeleteTask", mock.Anything, task.ID).Return(nil)

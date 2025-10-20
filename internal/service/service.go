@@ -17,7 +17,7 @@ func New(repo repository.Repository) *Service {
 }
 
 func (svc *Service) CreateTask(ctx context.Context, req dto.CreateTaskRequest) (models.Task, error) {
-	task := models.NewTask(req.Title, req.Description)
+	task := models.NewTask(req.Title, req.Description, req.Deadline.Value)
 
 	return svc.repo.CreateTask(ctx, task)
 }
@@ -36,8 +36,13 @@ func (svc *Service) EditTask(ctx context.Context, taskID models.TaskID, req dto.
 		return models.Task{}, err
 	}
 
+	if req.Deadline.Value.Before(task.CreatedAt) && !req.Deadline.Value.IsZero() {
+		return models.Task{}, errorsx.ErrDeadlineBeforeCreation
+	}
+
 	task.Title = req.Title
 	task.Description = req.Description
+	task.Deadline = req.Deadline.Value
 
 	return svc.repo.EditTask(ctx, taskID, task)
 }

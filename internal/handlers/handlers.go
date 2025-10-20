@@ -112,7 +112,7 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 	task, err := h.svc.EditTask(r.Context(), taskID, req)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
-			responses.WriteError(w, http.StatusNotFound, err)
+			responses.WriteError(w, responses.MapError(err), err)
 		}
 
 		return
