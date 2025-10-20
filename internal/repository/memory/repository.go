@@ -5,6 +5,7 @@ import (
 	"github.com/Xiof22/ToDoList/internal/dto"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"sync"
+	"time"
 )
 
 type Repository struct {
@@ -27,6 +28,8 @@ func (repo *Repository) CreateTask(ctx context.Context, req dto.CreateTaskReques
 		Title:       req.Title,
 		Description: req.Description,
 		IsCompleted: false,
+		CreatedAt:   time.Now(),
+		Deadline:    req.Deadline.Value,
 	}
 
 	repo.mu.Lock()
@@ -67,6 +70,8 @@ func (repo *Repository) EditTask(ctx context.Context, req dto.EditTaskRequest) m
 	task := repo.Tasks[req.ID]
 	task.Title = req.Title
 	task.Description = req.Description
+	task.Deadline = req.Deadline.Value
+	task.UpdatedAt = time.Now()
 
 	return *task
 }
