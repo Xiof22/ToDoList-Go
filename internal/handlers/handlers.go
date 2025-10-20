@@ -7,11 +7,14 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
-	errInvalidTitle = "Invalid title"
-	errInvalidID    = "Invalid ID"
+	errInvalidTitle    = "Invalid title"
+	errInvalidID       = "Invalid ID"
+	errInvalidDeadline = "Unexpected deadline format"
+	timeLayout         = "2006-01-02T15:04"
 )
 
 type Handlers struct {
@@ -25,13 +28,20 @@ func New(svc *service.Service) *Handlers {
 func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 	title := getFormValueWithTrim(r, "title")
 	description := getFormValueWithTrim(r, "description")
+	deadlineStr := getFormValueWithTrim(r, "deadline")
 
 	if isEmpty(title) {
 		http.Error(w, errInvalidTitle, http.StatusBadRequest)
 		return
 	}
 
-	err := h.svc.CreateTask(title, description)
+	deadline, err := time.Parse(timeLayout, deadlineStr)
+	if err != nil && !isEmpty(deadlineStr) {
+		http.Error(w, errInvalidDeadline, http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.CreateTask(title, description, deadline)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -87,15 +97,22 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	title := strings.TrimSpace(r.FormValue("title"))
-	description := strings.TrimSpace(r.FormValue("description"))
+	title := getFormValueWithTrim(r, "title")
+	description := getFormValueWithTrim(r, "description")
+	deadlineStr := getFormValueWithTrim(r, "deadline")
 
 	if isEmpty(title) {
 		http.Error(w, errInvalidTitle, http.StatusBadRequest)
 		return
 	}
 
-	err = h.svc.EditTask(id, title, description)
+	deadline, err := time.Parse(timeLayout, deadlineStr)
+	if err != nil && !isEmpty(deadlineStr) {
+		http.Error(w, errInvalidDeadline, http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.EditTask(id, title, description, deadline)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

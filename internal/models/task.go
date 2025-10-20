@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+	"github.com/dustin/go-humanize"
+	"time"
 )
 
 type Task struct {
@@ -9,6 +11,9 @@ type Task struct {
 	Title       string
 	Description string
 	IsCompleted bool
+	CreatedAt   time.Time
+	Deadline    time.Time
+	UpdatedAt   time.Time
 }
 
 func (t Task) String() string {
@@ -17,6 +22,18 @@ func (t Task) String() string {
 		desc = "none"
 	}
 
-	return fmt.Sprintf("ID: %d\nTitle: %s\nDescription: %s\nCompleted: %t\n\n",
-		t.ID, t.Title, desc, t.IsCompleted)
+	createdAt := humanize.Time(t.CreatedAt)
+	deadline := ""
+	updatedAt := ""
+
+	if !t.Deadline.IsZero() {
+		deadline = fmt.Sprintf("Deadline: %s\n", humanize.Time(t.Deadline))
+	}
+
+	if !t.UpdatedAt.IsZero() {
+		updatedAt = fmt.Sprintf("Updated: %s\n", humanize.Time(t.UpdatedAt))
+	}
+
+	return fmt.Sprintf("ID: %d\nTitle: %s\nDescription: %s\nCompleted: %t\nCreated: %s\n%s%s\n",
+		t.ID, t.Title, desc, t.IsCompleted, createdAt, deadline, updatedAt)
 }

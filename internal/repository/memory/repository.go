@@ -4,12 +4,14 @@ import (
 	"errors"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"sync"
+	"time"
 )
 
 var (
 	ErrNotFound           = errors.New("Task not found")
 	ErrAlreadyCompleted   = errors.New("Task is already completed")
 	ErrAlreadyUncompleted = errors.New("Task is already uncompleted")
+	ErrInvalidDeadline    = errors.New("Invalid deadline")
 )
 
 type Repository struct {
@@ -25,12 +27,20 @@ func New() *Repository {
 	}
 }
 
-func (repo *Repository) Create(title, description string) error {
+func (repo *Repository) Create(title, description string, deadline time.Time) error {
+	now := time.Now()
+
+	if deadline.Before(now) && !deadline.IsZero() {
+		return ErrInvalidDeadline
+	}
+
 	task := &models.Task{
 		ID:          repo.nextID,
 		Title:       title,
 		Description: description,
 		IsCompleted: false,
+		CreatedAt:   now,
+		Deadline:    deadline,
 	}
 
 	repo.mu.Lock()
@@ -63,7 +73,7 @@ func (repo *Repository) Get(id int) (*models.Task, error) {
 	return repo.Tasks[id], nil
 }
 
-func (repo *Repository) Edit(id int, title, description string) error {
+func (repo *Repository) Edit(id int, title, description string, deadline time.Time) error {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -72,8 +82,14 @@ func (repo *Repository) Edit(id int, title, description string) error {
 		return ErrNotFound
 	}
 
+	if deadline.Before(task.CreatedAt) && !deadline.IsZero() {
+		return ErrInvalidDeadline
+	}
+
 	task.Title = title
 	task.Description = description
+	task.Deadline = deadline
+	task.UpdatedAt = time.Now()
 
 	return nil
 }
