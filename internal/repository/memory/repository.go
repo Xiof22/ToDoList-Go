@@ -5,6 +5,7 @@ import (
 	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"sync"
+	"time"
 )
 
 type Repository struct {
@@ -22,6 +23,7 @@ func (repo *Repository) CreateTask(ctx context.Context, task models.Task) (model
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
+	task.CreatedAt = time.Now()
 	repo.Tasks[task.ID] = &task
 
 	return task, nil
@@ -57,6 +59,8 @@ func (repo *Repository) EditTask(ctx context.Context, taskID models.TaskID, task
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
+	now := time.Now()
+	task.UpdatedAt = &now
 	repo.Tasks[taskID] = &task
 
 	return task, nil
