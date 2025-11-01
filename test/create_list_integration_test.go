@@ -13,43 +13,22 @@ import (
 	"testing"
 )
 
-func TestCreateTask(t *testing.T) {
+func TestCreateList(t *testing.T) {
 	ts := newTestServer(t)
 	defer ts.Close()
 
 	client := ts.Client()
 
-	listResp := createList(t, client, ts.URL, sampleListMap)
-	listID := listResp.List.ID
+	url := fmt.Sprintf("%s/lists", ts.URL)
 
 	tests := []struct {
 		name       string
-		listID     string
 		payload    map[string]any
 		wantStatus int
 		wantError  *dto.ErrorsResponse
 	}{
 		{
-			name:       "List not found",
-			listID:     nilID,
-			payload:    sampleTaskMap,
-			wantStatus: http.StatusNotFound,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{errorsx.ErrListNotFound.Error()},
-			},
-		},
-		{
-			name:       "Invalid list ID",
-			listID:     invalidID,
-			payload:    sampleTaskMap,
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{errorsx.ErrInvalidListID.Error()},
-			},
-		},
-		{
-			name:   "Missing title",
-			listID: listID,
+			name: "Missing title",
 			payload: map[string]any{
 				"title": "       ",
 			},
@@ -59,35 +38,8 @@ func TestCreateTask(t *testing.T) {
 			},
 		},
 		{
-			name:   "Deadline before creation",
-			listID: listID,
-			payload: map[string]any{
-				"title":       sampleTaskMap["title"],
-				"description": sampleTaskMap["description"],
-				"deadline":    pastDeadline,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{errorsx.ErrValidation("Deadline", "future_or_empty").Error()},
-			},
-		},
-		{
-			name:   "Unexpected deadline format",
-			listID: listID,
-			payload: map[string]any{
-				"title":       sampleTaskMap["title"],
-				"description": sampleTaskMap["description"],
-				"deadline":    invalidFormatDeadline,
-			},
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{errorsx.ErrInvalidDeadlineFormat.Error()},
-			},
-		},
-		{
 			name:       "Success",
-			listID:     listID,
-			payload:    sampleTaskMap,
+			payload:    sampleListMap,
 			wantStatus: http.StatusCreated,
 			wantError:  nil,
 		},
@@ -97,8 +49,6 @@ func TestCreateTask(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			body, err := json.Marshal(tt.payload)
 			require.NoError(t, err)
-
-			url := fmt.Sprintf("%s/lists/%s/tasks", ts.URL, tt.listID)
 
 			resp, err := client.Post(url, "application/json", bytes.NewReader(body))
 			require.NoError(t, err)
@@ -115,10 +65,9 @@ func TestCreateTask(t *testing.T) {
 	}
 
 	t.Run("Missing body", func(t *testing.T) {
-		url := fmt.Sprintf("%s/lists/%s/tasks", ts.URL, listID)
-
 		req, err := http.NewRequest(http.MethodPost, url, nil)
 		require.NoError(t, err)
+		req.Header.Set("content-type", "application/json")
 
 		resp, err := client.Do(req)
 		require.NoError(t, err)

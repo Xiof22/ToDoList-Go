@@ -14,9 +14,37 @@ type Repository struct {
 	mock.Mock
 }
 
-// CreateTask provides a mock function with given fields: ctx, task
-func (_m *Repository) CreateTask(ctx context.Context, task models.Task) (models.Task, error) {
-	ret := _m.Called(ctx, task)
+// CreateList provides a mock function with given fields: ctx, list
+func (_m *Repository) CreateList(ctx context.Context, list models.List) (models.List, error) {
+	ret := _m.Called(ctx, list)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateList")
+	}
+
+	var r0 models.List
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.List) (models.List, error)); ok {
+		return rf(ctx, list)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.List) models.List); ok {
+		r0 = rf(ctx, list)
+	} else {
+		r0 = ret.Get(0).(models.List)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.List) error); ok {
+		r1 = rf(ctx, list)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// CreateTask provides a mock function with given fields: ctx, listID, task
+func (_m *Repository) CreateTask(ctx context.Context, listID models.ListID, task models.Task) (models.Task, error) {
+	ret := _m.Called(ctx, listID, task)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateTask")
@@ -24,17 +52,17 @@ func (_m *Repository) CreateTask(ctx context.Context, task models.Task) (models.
 
 	var r0 models.Task
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.Task) (models.Task, error)); ok {
-		return rf(ctx, task)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.Task) (models.Task, error)); ok {
+		return rf(ctx, listID, task)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.Task) models.Task); ok {
-		r0 = rf(ctx, task)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.Task) models.Task); ok {
+		r0 = rf(ctx, listID, task)
 	} else {
 		r0 = ret.Get(0).(models.Task)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.Task) error); ok {
-		r1 = rf(ctx, task)
+	if rf, ok := ret.Get(1).(func(context.Context, models.ListID, models.Task) error); ok {
+		r1 = rf(ctx, listID, task)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -42,17 +70,17 @@ func (_m *Repository) CreateTask(ctx context.Context, task models.Task) (models.
 	return r0, r1
 }
 
-// DeleteTask provides a mock function with given fields: ctx, taskID
-func (_m *Repository) DeleteTask(ctx context.Context, taskID models.TaskID) error {
-	ret := _m.Called(ctx, taskID)
+// DeleteList provides a mock function with given fields: ctx, listID
+func (_m *Repository) DeleteList(ctx context.Context, listID models.ListID) error {
+	ret := _m.Called(ctx, listID)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteTask")
+		panic("no return value specified for DeleteList")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.TaskID) error); ok {
-		r0 = rf(ctx, taskID)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID) error); ok {
+		r0 = rf(ctx, listID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -60,9 +88,55 @@ func (_m *Repository) DeleteTask(ctx context.Context, taskID models.TaskID) erro
 	return r0
 }
 
-// EditTask provides a mock function with given fields: ctx, taskID, task
-func (_m *Repository) EditTask(ctx context.Context, taskID models.TaskID, task models.Task) (models.Task, error) {
-	ret := _m.Called(ctx, taskID, task)
+// DeleteTask provides a mock function with given fields: ctx, listID, taskID
+func (_m *Repository) DeleteTask(ctx context.Context, listID models.ListID, taskID models.TaskID) error {
+	ret := _m.Called(ctx, listID, taskID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteTask")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.TaskID) error); ok {
+		r0 = rf(ctx, listID, taskID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// EditList provides a mock function with given fields: ctx, listID, list
+func (_m *Repository) EditList(ctx context.Context, listID models.ListID, list models.List) (models.List, error) {
+	ret := _m.Called(ctx, listID, list)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EditList")
+	}
+
+	var r0 models.List
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.List) (models.List, error)); ok {
+		return rf(ctx, listID, list)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.List) models.List); ok {
+		r0 = rf(ctx, listID, list)
+	} else {
+		r0 = ret.Get(0).(models.List)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.ListID, models.List) error); ok {
+		r1 = rf(ctx, listID, list)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// EditTask provides a mock function with given fields: ctx, listID, taskID, task
+func (_m *Repository) EditTask(ctx context.Context, listID models.ListID, taskID models.TaskID, task models.Task) (models.Task, error) {
+	ret := _m.Called(ctx, listID, taskID, task)
 
 	if len(ret) == 0 {
 		panic("no return value specified for EditTask")
@@ -70,17 +144,17 @@ func (_m *Repository) EditTask(ctx context.Context, taskID models.TaskID, task m
 
 	var r0 models.Task
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.TaskID, models.Task) (models.Task, error)); ok {
-		return rf(ctx, taskID, task)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.TaskID, models.Task) (models.Task, error)); ok {
+		return rf(ctx, listID, taskID, task)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.TaskID, models.Task) models.Task); ok {
-		r0 = rf(ctx, taskID, task)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.TaskID, models.Task) models.Task); ok {
+		r0 = rf(ctx, listID, taskID, task)
 	} else {
 		r0 = ret.Get(0).(models.Task)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.TaskID, models.Task) error); ok {
-		r1 = rf(ctx, taskID, task)
+	if rf, ok := ret.Get(1).(func(context.Context, models.ListID, models.TaskID, models.Task) error); ok {
+		r1 = rf(ctx, listID, taskID, task)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -88,9 +162,67 @@ func (_m *Repository) EditTask(ctx context.Context, taskID models.TaskID, task m
 	return r0, r1
 }
 
-// GetTask provides a mock function with given fields: ctx, taskID
-func (_m *Repository) GetTask(ctx context.Context, taskID models.TaskID) (models.Task, error) {
-	ret := _m.Called(ctx, taskID)
+// GetList provides a mock function with given fields: ctx, listID
+func (_m *Repository) GetList(ctx context.Context, listID models.ListID) (models.List, error) {
+	ret := _m.Called(ctx, listID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetList")
+	}
+
+	var r0 models.List
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID) (models.List, error)); ok {
+		return rf(ctx, listID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID) models.List); ok {
+		r0 = rf(ctx, listID)
+	} else {
+		r0 = ret.Get(0).(models.List)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.ListID) error); ok {
+		r1 = rf(ctx, listID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetLists provides a mock function with given fields: ctx
+func (_m *Repository) GetLists(ctx context.Context) ([]models.List, error) {
+	ret := _m.Called(ctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetLists")
+	}
+
+	var r0 []models.List
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context) ([]models.List, error)); ok {
+		return rf(ctx)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context) []models.List); ok {
+		r0 = rf(ctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.List)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
+		r1 = rf(ctx)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetTask provides a mock function with given fields: ctx, listID, taskID
+func (_m *Repository) GetTask(ctx context.Context, listID models.ListID, taskID models.TaskID) (models.Task, error) {
+	ret := _m.Called(ctx, listID, taskID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTask")
@@ -98,17 +230,17 @@ func (_m *Repository) GetTask(ctx context.Context, taskID models.TaskID) (models
 
 	var r0 models.Task
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, models.TaskID) (models.Task, error)); ok {
-		return rf(ctx, taskID)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.TaskID) (models.Task, error)); ok {
+		return rf(ctx, listID, taskID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, models.TaskID) models.Task); ok {
-		r0 = rf(ctx, taskID)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.TaskID) models.Task); ok {
+		r0 = rf(ctx, listID, taskID)
 	} else {
 		r0 = ret.Get(0).(models.Task)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, models.TaskID) error); ok {
-		r1 = rf(ctx, taskID)
+	if rf, ok := ret.Get(1).(func(context.Context, models.ListID, models.TaskID) error); ok {
+		r1 = rf(ctx, listID, taskID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -116,9 +248,9 @@ func (_m *Repository) GetTask(ctx context.Context, taskID models.TaskID) (models
 	return r0, r1
 }
 
-// GetTasks provides a mock function with given fields: ctx
-func (_m *Repository) GetTasks(ctx context.Context) ([]models.Task, error) {
-	ret := _m.Called(ctx)
+// GetTasks provides a mock function with given fields: ctx, listID
+func (_m *Repository) GetTasks(ctx context.Context, listID models.ListID) ([]models.Task, error) {
+	ret := _m.Called(ctx, listID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetTasks")
@@ -126,19 +258,19 @@ func (_m *Repository) GetTasks(ctx context.Context) ([]models.Task, error) {
 
 	var r0 []models.Task
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]models.Task, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID) ([]models.Task, error)); ok {
+		return rf(ctx, listID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []models.Task); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, models.ListID) []models.Task); ok {
+		r0 = rf(ctx, listID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.Task)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, models.ListID) error); ok {
+		r1 = rf(ctx, listID)
 	} else {
 		r1 = ret.Error(1)
 	}

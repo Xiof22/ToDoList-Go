@@ -9,7 +9,8 @@ import (
 func MapError(err error) int {
 	switch {
 
-	case errors.Is(err, errorsx.ErrTaskNotFound):
+	case errors.Is(err, errorsx.ErrListNotFound),
+		errors.Is(err, errorsx.ErrTaskNotFound):
 		return http.StatusNotFound
 
 	case errors.Is(err, errorsx.ErrAlreadyCompleted),

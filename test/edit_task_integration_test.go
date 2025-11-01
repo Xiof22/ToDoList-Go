@@ -19,7 +19,10 @@ func TestEditTask(t *testing.T) {
 
 	client := ts.Client()
 
-	taskResp := createTask(t, client, ts.URL, sampleTaskMap)
+	listResp := createList(t, client, ts.URL, sampleListMap)
+	listID := listResp.List.ID
+
+	taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
 	taskID := taskResp.Task.ID
 
 	editedTaskMap := map[string]any{
@@ -29,13 +32,35 @@ func TestEditTask(t *testing.T) {
 
 	tests := []struct {
 		name       string
+		listID     string
 		taskID     string
 		payload    map[string]any
 		wantStatus int
 		wantError  *dto.ErrorsResponse
 	}{
 		{
+			name:       "List not found",
+			listID:     nilID,
+			taskID:     taskID,
+			payload:    editedTaskMap,
+			wantStatus: http.StatusNotFound,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrListNotFound.Error()},
+			},
+		},
+		{
+			name:       "Invalid list ID",
+			listID:     invalidID,
+			taskID:     taskID,
+			payload:    editedTaskMap,
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrInvalidListID.Error()},
+			},
+		},
+		{
 			name:       "Task not found",
+			listID:     listID,
 			taskID:     nilID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusNotFound,
@@ -45,6 +70,7 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:       "Invalid task ID",
+			listID:     listID,
 			taskID:     invalidID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusBadRequest,
@@ -54,6 +80,7 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:   "Missing title",
+			listID: listID,
 			taskID: taskID,
 			payload: map[string]any{
 				"title": "     ",
@@ -65,6 +92,7 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:   "Deadline before creation",
+			listID: listID,
 			taskID: taskID,
 			payload: map[string]any{
 				"title":       sampleTaskMap["title"],
@@ -78,6 +106,7 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:   "Unexpected deadline format",
+			listID: listID,
 			taskID: taskID,
 			payload: map[string]any{
 				"title":       sampleTaskMap["title"],
@@ -91,6 +120,7 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:       "Success",
+			listID:     listID,
 			taskID:     taskID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusOK,
@@ -103,7 +133,7 @@ func TestEditTask(t *testing.T) {
 			body, err := json.Marshal(tt.payload)
 			require.NoError(t, err)
 
-			url := fmt.Sprintf("%s/tasks/%s", ts.URL, tt.taskID)
+			url := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, tt.listID, tt.taskID)
 
 			req, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(body))
 			require.NoError(t, err)
@@ -115,16 +145,18 @@ func TestEditTask(t *testing.T) {
 
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 
-			if tt.wantError != nil {
-				gotError := &dto.ErrorsResponse{}
-				require.NoError(t, json.NewDecoder(resp.Body).Decode(gotError))
-				assert.Equal(t, tt.wantError, gotError)
+			if tt.wantError == nil {
+				return
 			}
+
+			gotError := &dto.ErrorsResponse{}
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(gotError))
+			assert.Equal(t, tt.wantError, gotError)
 		})
 	}
 
 	t.Run("Missing body", func(t *testing.T) {
-		url := fmt.Sprintf("%s/tasks/%s", ts.URL, taskID)
+		url := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, listID, taskID)
 
 		req, err := http.NewRequest(http.MethodPatch, url, nil)
 		require.NoError(t, err)
