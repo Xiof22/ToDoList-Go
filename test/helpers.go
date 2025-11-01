@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
 	"github.com/Xiof22/ToDoList/internal/handlers"
 	"github.com/Xiof22/ToDoList/internal/repository/memory"
@@ -25,20 +26,40 @@ func newTestServer(t *testing.T) *httptest.Server {
 	return httptest.NewServer(r)
 }
 
-func createTask(t *testing.T, client *http.Client, baseURL string, taskMap map[string]any) dto.TaskResponse {
-	t.Helper()
+func createList(t *testing.T, client *http.Client, baseURL string, listMap map[string]any) dto.ListResponse {
+        t.Helper()
 
-	body, err := json.Marshal(taskMap)
-	require.NoError(t, err)
+        body, err := json.Marshal(listMap)
+        require.NoError(t, err)
 
-	resp, err := client.Post(baseURL+"/tasks", "application/json", bytes.NewReader(body))
-	require.NoError(t, err)
-	defer resp.Body.Close()
+        resp, err := client.Post(baseURL+"/lists", "application/json", bytes.NewReader(body))
+        require.NoError(t, err)
+        defer resp.Body.Close()
 
-	require.Equal(t, http.StatusCreated, resp.StatusCode)
+        require.Equal(t, http.StatusCreated, resp.StatusCode)
 
-	var taskResp dto.TaskResponse
-	require.NoError(t, json.NewDecoder(resp.Body).Decode(&taskResp))
+        var listResp dto.ListResponse
+        require.NoError(t, json.NewDecoder(resp.Body).Decode(&listResp))
 
-	return taskResp
+        return listResp
+}
+
+func createTask(t *testing.T, client *http.Client, baseURL string, listID string, taskMap map[string]any) dto.TaskResponse {
+        t.Helper()
+
+        body, err := json.Marshal(taskMap)
+        require.NoError(t, err)
+
+        url := fmt.Sprintf("%s/lists/%s/tasks", baseURL, listID)
+
+        resp, err := client.Post(url, "application/json", bytes.NewReader(body))
+        require.NoError(t, err)
+        defer resp.Body.Close()
+
+        require.Equal(t, http.StatusCreated, resp.StatusCode)
+
+        var taskResp dto.TaskResponse
+        require.NoError(t, json.NewDecoder(resp.Body).Decode(&taskResp))
+
+        return taskResp
 }
