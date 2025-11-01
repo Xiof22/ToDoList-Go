@@ -24,3 +24,26 @@ func sortTasks(tasks []models.Task) []models.Task {
 		}
 	}
 }
+
+func sortLists(lists []models.List) []models.List {
+	if len(lists) <= 1 {
+		return lists
+	}
+
+	for {
+		swapped := false
+
+		for current := 1; current < len(lists)-1; current++ {
+			next := current + 1
+
+			if lists[current].ID > lists[next].ID {
+				lists[current], lists[next] = lists[next], lists[current]
+				swapped = true
+			}
+		}
+
+		if !swapped {
+			return lists
+		}
+	}
+}

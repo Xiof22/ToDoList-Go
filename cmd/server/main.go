@@ -20,13 +20,21 @@ func main() {
 	r := mux.NewRouter()
 	validator.Init()
 
-	r.HandleFunc("/tasks", h.CreateTaskHandler).Methods("POST")
-	r.HandleFunc("/tasks", h.GetTasksHandler).Methods("GET")
-	r.HandleFunc("/tasks/{id}", h.GetTaskHandler).Methods("GET")
-	r.HandleFunc("/tasks/{id}", h.EditTaskHandler).Methods("PATCH")
-	r.HandleFunc("/tasks/{id}/complete", h.CompleteTaskHandler).Methods("PATCH")
-	r.HandleFunc("/tasks/{id}/uncomplete", h.UncompleteTaskHandler).Methods("PATCH")
-	r.HandleFunc("/tasks/{id}", h.DeleteTaskHandler).Methods("DELETE")
+	// List Handlers
+	r.HandleFunc("/lists", h.CreateListHandler).Methods("POST")
+	r.HandleFunc("/lists", h.GetListsHandler).Methods("GET")
+	r.HandleFunc("/lists/{list_id}", h.GetListHandler).Methods("GET")
+	r.HandleFunc("/lists/{list_id}", h.EditListHandler).Methods("PATCH")
+	r.HandleFunc("/lists/{list_id}", h.DeleteListHandler).Methods("DELETE")
+
+	// Task Handlers
+	r.HandleFunc("/lists/{list_id}/tasks", h.CreateTaskHandler).Methods("POST")
+	r.HandleFunc("/lists/{list_id}/tasks", h.GetTasksHandler).Methods("GET")
+	r.HandleFunc("/lists/{list_id}/tasks/{task_id}", h.GetTaskHandler).Methods("GET")
+	r.HandleFunc("/lists/{list_id}/tasks/{task_id}", h.EditTaskHandler).Methods("PATCH")
+	r.HandleFunc("/lists/{list_id}/tasks/{task_id}/complete", h.CompleteTaskHandler).Methods("PATCH")
+	r.HandleFunc("/lists/{list_id}/tasks/{task_id}/uncomplete", h.UncompleteTaskHandler).Methods("PATCH")
+	r.HandleFunc("/lists/{list_id}/tasks/{task_id}", h.DeleteTaskHandler).Methods("DELETE")
 
 	fmt.Println("Serving start...")
 	err := http.ListenAndServe(":8080", r)
