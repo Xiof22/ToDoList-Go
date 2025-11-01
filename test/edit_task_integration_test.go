@@ -19,8 +19,13 @@ func TestEditTask(t *testing.T) {
 
 	client := ts.Client()
 
-	taskResp := createTask(t, client, ts.URL, sampleTaskMap)
-	strTaskID := strconv.Itoa(taskResp.Task.ID)
+	listResp := createList(t, client, ts.URL, sampleListMap)
+	listID := listResp.List.ID
+	strListID := strconv.Itoa(listID)
+
+	taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
+	taskID := taskResp.Task.ID
+	strTaskID := strconv.Itoa(taskID)
 
 	editedTaskMap := map[string]any{
 		"title":       "Edited title",
@@ -29,13 +34,45 @@ func TestEditTask(t *testing.T) {
 
 	tests := []struct {
 		name       string
+		listID     string
 		taskID     string
 		payload    map[string]any
 		wantStatus int
 		wantError  *dto.ErrorsResponse
 	}{
 		{
+			name:       "List not found",
+			listID:     "999",
+			taskID:     strTaskID,
+			payload:    editedTaskMap,
+			wantStatus: http.StatusNotFound,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{"List not found"},
+			},
+		},
+		{
+			name:       "List ID less than 1",
+			listID:     "0",
+			taskID:     strTaskID,
+			payload:    editedTaskMap,
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{"Field 'ListID' doesn't match the rule 'gt'"},
+			},
+		},
+		{
+			name:       "Alphameric List ID",
+			listID:     "abc",
+			taskID:     strTaskID,
+			payload:    editedTaskMap,
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{"Failed to parse 'list_id'"},
+			},
+		},
+		{
 			name:       "Task not found",
+			listID:     strListID,
 			taskID:     "999",
 			payload:    editedTaskMap,
 			wantStatus: http.StatusNotFound,
@@ -45,24 +82,27 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:       "Task ID less than 1",
+			listID:     strListID,
 			taskID:     "0",
 			payload:    editedTaskMap,
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'ID' doesn't match the rule 'gt'"},
+				Errors: []string{"Field 'TaskID' doesn't match the rule 'gt'"},
 			},
 		},
 		{
 			name:       "Alphameric Task ID",
+			listID:     strListID,
 			taskID:     "abc",
 			payload:    editedTaskMap,
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'id'"},
+				Errors: []string{"Failed to parse 'task_id'"},
 			},
 		},
 		{
 			name:   "Missing title",
+			listID: strListID,
 			taskID: strTaskID,
 			payload: map[string]any{
 				"title": "     ",
@@ -74,6 +114,7 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:   "Deadline before creation",
+			listID: strListID,
 			taskID: strTaskID,
 			payload: map[string]any{
 				"title":       sampleTaskMap["title"],
@@ -87,6 +128,7 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:   "Unexpected deadline format",
+			listID: strListID,
 			taskID: strTaskID,
 			payload: map[string]any{
 				"title":       sampleTaskMap["title"],
@@ -100,6 +142,7 @@ func TestEditTask(t *testing.T) {
 		},
 		{
 			name:       "Success",
+			listID:     strListID,
 			taskID:     strTaskID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusOK,
@@ -112,7 +155,7 @@ func TestEditTask(t *testing.T) {
 			body, err := json.Marshal(tt.payload)
 			require.NoError(t, err)
 
-			url := fmt.Sprintf("%s/tasks/%s", ts.URL, tt.taskID)
+			url := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, tt.listID, tt.taskID)
 
 			req, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(body))
 			require.NoError(t, err)
@@ -124,16 +167,18 @@ func TestEditTask(t *testing.T) {
 
 			assert.Equal(t, tt.wantStatus, resp.StatusCode)
 
-			if tt.wantError != nil {
-				gotError := &dto.ErrorsResponse{}
-				require.NoError(t, json.NewDecoder(resp.Body).Decode(gotError))
-				assert.Equal(t, tt.wantError, gotError)
+			if tt.wantError == nil {
+				return
 			}
+
+			gotError := &dto.ErrorsResponse{}
+			require.NoError(t, json.NewDecoder(resp.Body).Decode(gotError))
+			assert.Equal(t, tt.wantError, gotError)
 		})
 	}
 
 	t.Run("Missing body", func(t *testing.T) {
-		url := fmt.Sprintf("%s/tasks/%s", ts.URL, strTaskID)
+		url := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, strListID, strTaskID)
 
 		req, err := http.NewRequest(http.MethodPatch, url, nil)
 		require.NoError(t, err)

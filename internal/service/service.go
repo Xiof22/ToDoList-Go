@@ -1,11 +1,6 @@
 package service
 
-import (
-	"context"
-	"github.com/Xiof22/ToDoList/internal/dto"
-	"github.com/Xiof22/ToDoList/internal/models"
-	"github.com/Xiof22/ToDoList/internal/repository"
-)
+import "github.com/Xiof22/ToDoList/internal/repository"
 
 type Service struct {
 	repo repository.Repository
@@ -13,65 +8,4 @@ type Service struct {
 
 func New(repo repository.Repository) *Service {
 	return &Service{repo: repo}
-}
-
-func (svc *Service) CreateTask(ctx context.Context, req dto.CreateTaskRequest) models.Task {
-	return svc.repo.CreateTask(ctx, req)
-}
-
-func (svc *Service) GetTasks(ctx context.Context) []models.Task {
-	return svc.repo.GetTasks(ctx)
-}
-
-func (svc *Service) GetTask(ctx context.Context, req dto.TaskIdentifier) (*models.Task, bool) {
-	return svc.repo.GetTask(ctx, req)
-}
-
-func (svc *Service) EditTask(ctx context.Context, req dto.EditTaskRequest) (models.Task, error) {
-	if task, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
-		ID: req.ID,
-	}); !found {
-		return models.Task{}, ErrTaskNotFound
-	} else if req.Deadline.Value.Before(task.CreatedAt) && !req.Deadline.Value.IsZero() {
-		return models.Task{}, ErrDeadlineBeforeCreation
-	}
-
-	return svc.repo.EditTask(ctx, req), nil
-}
-
-func (svc *Service) CompleteTask(ctx context.Context, req dto.TaskIdentifier) error {
-	if task, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
-		ID: req.ID,
-	}); !found {
-		return ErrTaskNotFound
-	} else if task.IsCompleted {
-		return ErrAlreadyCompleted
-	}
-
-	svc.repo.CompleteTask(ctx, req)
-	return nil
-}
-
-func (svc *Service) UncompleteTask(ctx context.Context, req dto.TaskIdentifier) error {
-	if task, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
-		ID: req.ID,
-	}); !found {
-		return ErrTaskNotFound
-	} else if !task.IsCompleted {
-		return ErrAlreadyUncompleted
-	}
-
-	svc.repo.UncompleteTask(ctx, req)
-	return nil
-}
-
-func (svc *Service) DeleteTask(ctx context.Context, req dto.TaskIdentifier) error {
-	if _, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
-		ID: req.ID,
-	}); !found {
-		return ErrTaskNotFound
-	}
-
-	svc.repo.DeleteTask(ctx, req)
-	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
+	"strconv"
 	"testing"
 )
 
@@ -18,16 +19,46 @@ func TestCreateTask(t *testing.T) {
 
 	client := ts.Client()
 
-	url := fmt.Sprintf("%s/tasks", ts.URL)
+	listResp := createList(t, client, ts.URL, sampleListMap)
+	strListID := strconv.Itoa(listResp.List.ID)
 
 	tests := []struct {
 		name       string
+		listID     string
 		payload    map[string]any
 		wantStatus int
 		wantError  *dto.ErrorsResponse
 	}{
 		{
-			name: "Missing title",
+			name:       "List not found",
+			listID:     "999",
+			payload:    sampleTaskMap,
+			wantStatus: http.StatusNotFound,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{"List not found"},
+			},
+		},
+		{
+			name:       "List ID less than 1",
+			listID:     "0",
+			payload:    sampleTaskMap,
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{"Field 'ListID' doesn't match the rule 'gt'"},
+			},
+		},
+		{
+			name:       "Alphameric List ID",
+			listID:     "abc",
+			payload:    sampleTaskMap,
+			wantStatus: http.StatusBadRequest,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{"Failed to parse 'list_id'"},
+			},
+		},
+		{
+			name:   "Missing title",
+			listID: strListID,
 			payload: map[string]any{
 				"title": "       ",
 			},
@@ -37,7 +68,8 @@ func TestCreateTask(t *testing.T) {
 			},
 		},
 		{
-			name: "Deadline before creation",
+			name:   "Deadline before creation",
+			listID: strListID,
 			payload: map[string]any{
 				"title":       sampleTaskMap["title"],
 				"description": sampleTaskMap["description"],
@@ -49,7 +81,8 @@ func TestCreateTask(t *testing.T) {
 			},
 		},
 		{
-			name: "Unexpected deadline format",
+			name:   "Unexpected deadline format",
+			listID: strListID,
 			payload: map[string]any{
 				"title":       sampleTaskMap["title"],
 				"description": sampleTaskMap["description"],
@@ -62,6 +95,7 @@ func TestCreateTask(t *testing.T) {
 		},
 		{
 			name:       "Success",
+			listID:     strListID,
 			payload:    sampleTaskMap,
 			wantStatus: http.StatusCreated,
 			wantError:  nil,
@@ -72,6 +106,8 @@ func TestCreateTask(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			body, err := json.Marshal(tt.payload)
 			require.NoError(t, err)
+
+			url := fmt.Sprintf("%s/lists/%s/tasks", ts.URL, tt.listID)
 
 			resp, err := client.Post(url, "application/json", bytes.NewReader(body))
 			require.NoError(t, err)
@@ -88,12 +124,16 @@ func TestCreateTask(t *testing.T) {
 	}
 
 	t.Run("Missing body", func(t *testing.T) {
+		url := fmt.Sprintf("%s/lists/%s/tasks", ts.URL, strListID)
+
 		req, err := http.NewRequest(http.MethodPost, url, nil)
 		require.NoError(t, err)
 
 		resp, err := client.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		wantError := dto.ErrorsResponse{
 			Errors: []string{"Empty JSON"},

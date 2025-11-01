@@ -44,7 +44,8 @@ func mapTaskError(err error) int {
 		errors.Is(err, service.ErrDeadlineBeforeCreation):
 		return http.StatusBadRequest
 
-	case errors.Is(err, service.ErrTaskNotFound):
+	case errors.Is(err, service.ErrListNotFound),
+		errors.Is(err, service.ErrTaskNotFound):
 		return http.StatusNotFound
 
 	default:

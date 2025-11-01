@@ -12,31 +12,30 @@ import (
 	"testing"
 )
 
-func TestGetTasks(t *testing.T) {
+func TestGetList(t *testing.T) {
 	ts := newTestServer()
 	defer ts.Close()
 
 	client := ts.Client()
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
-	listID := listResp.List.ID
-	strListID := strconv.Itoa(listID)
+	strListID := strconv.Itoa(listResp.List.ID)
 
 	tests := []struct {
 		name         string
 		listID       string
 		wantStatus   int
-		wantResponse *dto.TasksResponse
+		wantResponse *dto.ListResponse
 		wantError    *dto.ErrorsResponse
 	}{
 		{
-			name:         "List not found",
-			listID:       "999",
-			wantStatus:   http.StatusNotFound,
-			wantResponse: nil,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"List not found"},
+			name:       "List not found",
+			listID:     "999",
+			wantStatus: http.StatusNotFound,
+			wantResponse: &dto.ListResponse{
+				List: nil,
 			},
+			wantError: nil,
 		},
 		{
 			name:         "List ID less than 1",
@@ -48,7 +47,7 @@ func TestGetTasks(t *testing.T) {
 			},
 		},
 		{
-			name:         "Alphameric list ID",
+			name:         "Alphameric List ID",
 			listID:       "abc",
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
@@ -57,12 +56,11 @@ func TestGetTasks(t *testing.T) {
 			},
 		},
 		{
-			name:       "No tasks",
+			name:       "Success",
 			listID:     strListID,
 			wantStatus: http.StatusOK,
-			wantResponse: &dto.TasksResponse{
-				Count: 0,
-				Tasks: []dto.Task{},
+			wantResponse: &dto.ListResponse{
+				List: &sampleList,
 			},
 			wantError: nil,
 		},
@@ -70,7 +68,7 @@ func TestGetTasks(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("%s/lists/%s/tasks", ts.URL, tt.listID)
+			url := fmt.Sprintf("%s/lists/%s", ts.URL, tt.listID)
 
 			resp, err := client.Get(url)
 			require.NoError(t, err)
@@ -86,35 +84,17 @@ func TestGetTasks(t *testing.T) {
 				return
 			}
 
-			gotResponse := &dto.TasksResponse{}
+			gotResponse := &dto.ListResponse{}
 			require.NoError(t, json.NewDecoder(resp.Body).Decode(gotResponse))
 
-			assert.Equal(t, gotResponse, tt.wantResponse)
+			if tt.wantResponse.List == nil {
+				assert.Equal(t, tt.wantResponse, gotResponse)
+				return
+			}
+
+			assert.Equal(t, tt.wantResponse.List.Title, gotResponse.List.Title)
+			assert.Equal(t, tt.wantResponse.List.Description, gotResponse.List.Description)
+			assert.Greater(t, gotResponse.List.ID, 0)
 		})
 	}
-
-	t.Run("Have task", func(t *testing.T) {
-		createTask(t, client, ts.URL, listID, sampleTaskMap)
-
-		url := fmt.Sprintf("%s/lists/%s/tasks", ts.URL, strListID)
-
-		resp, err := client.Get(url)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-		wantResponse := dto.TasksResponse{
-			Count: 1,
-			Tasks: []dto.Task{sampleTask},
-		}
-
-		var gotResponse dto.TasksResponse
-		require.NoError(t, json.NewDecoder(resp.Body).Decode(&gotResponse))
-
-		assert.Equal(t, gotResponse.Count, wantResponse.Count)
-		assert.Equal(t, gotResponse.Tasks[0].Title, wantResponse.Tasks[0].Title)
-		assert.Equal(t, gotResponse.Tasks[0].Deadline, wantResponse.Tasks[0].Deadline)
-		assert.Greater(t, gotResponse.Tasks[0].ID, 0)
-	})
 }

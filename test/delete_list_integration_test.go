@@ -12,31 +12,24 @@ import (
 	"testing"
 )
 
-func TestDeleteTask(t *testing.T) {
+func TestDeleteList(t *testing.T) {
 	ts := newTestServer()
 	defer ts.Close()
 
 	client := ts.Client()
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
-	listID := listResp.List.ID
-	strListID := strconv.Itoa(listID)
-
-	taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
-	taskID := taskResp.Task.ID
-	strTaskID := strconv.Itoa(taskID)
+	strListID := strconv.Itoa(listResp.List.ID)
 
 	tests := []struct {
 		name       string
 		listID     string
-		taskID     string
 		wantStatus int
 		wantError  *dto.ErrorsResponse
 	}{
 		{
 			name:       "List not found",
 			listID:     "999",
-			taskID:     strTaskID,
 			wantStatus: http.StatusNotFound,
 			wantError: &dto.ErrorsResponse{
 				Errors: []string{"List not found"},
@@ -45,60 +38,30 @@ func TestDeleteTask(t *testing.T) {
 		{
 			name:       "List ID less than 1",
 			listID:     "0",
-			taskID:     strTaskID,
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'ListID' doesn't match the rule 'gt'"},
+				Errors: []string{"Field 'ID' doesn't match the rule 'gt'"},
 			},
 		},
 		{
 			name:       "Alphameric List ID",
 			listID:     "abc",
-			taskID:     strTaskID,
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
 				Errors: []string{"Failed to parse 'list_id'"},
 			},
 		},
 		{
-			name:       "Task not found",
-			listID:     strListID,
-			taskID:     "999",
-			wantStatus: http.StatusNotFound,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Task not found"},
-			},
-		},
-		{
-			name:       "Task ID less than 1",
-			listID:     strListID,
-			taskID:     "0",
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'TaskID' doesn't match the rule 'gt'"},
-			},
-		},
-		{
-			name:       "Alphameric Task ID",
-			listID:     strListID,
-			taskID:     "abc",
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'task_id'"},
-			},
-		},
-		{
 			name:       "Success",
 			listID:     strListID,
-			taskID:     strTaskID,
 			wantStatus: http.StatusNoContent,
 			wantError:  nil,
 		},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, tt.listID, tt.taskID)
+		t.Run("tt.name", func(t *testing.T) {
+			url := fmt.Sprintf("%s/lists/%s", ts.URL, tt.listID)
 
 			req, err := http.NewRequest(http.MethodDelete, url, nil)
 			require.NoError(t, err)

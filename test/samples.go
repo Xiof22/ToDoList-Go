@@ -5,6 +5,16 @@ import (
 	"time"
 )
 
+var sampleList dto.List = dto.List{
+	Title:       "Sample list title",
+	Description: "Sample list description",
+}
+
+var sampleListMap map[string]any = map[string]any{
+	"title":       sampleList.Title,
+	"description": sampleList.Description,
+}
+
 var sampleDeadline = time.Date(
 	2030, time.December, 7,
 	16, 59, 21, 0,
