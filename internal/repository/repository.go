@@ -6,11 +6,20 @@ import (
 )
 
 type Repository interface {
-	Create(title, description string, deadline time.Time) error
-	GetAll() ([]models.Task, error)
-	Get(id int) (*models.Task, error)
-	Edit(id int, title, description string, deadline time.Time) error
-	Complete(id int) error
-	Uncomplete(id int) error
-	Delete(id int) error
+
+	// List
+	CreateList(title, description string) error
+	GetLists() ([]models.List, error)
+	GetList(listID int) (*models.List, error)
+	EditList(listID int, title, description string) error
+	DeleteList(listID int) error
+
+	// Task
+	CreateTask(listID int, title, description string, deadline time.Time) error
+	GetTasks(listID int) ([]models.Task, error)
+	GetTask(listID, taskID int) (*models.Task, error)
+	EditTask(listID, taskID int, title, description string, deadline time.Time) error
+	CompleteTask(listID, taskID int) error
+	UncompleteTask(listID, taskID int) error
+	DeleteTask(listID, taskID int) error
 }

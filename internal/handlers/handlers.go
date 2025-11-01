@@ -1,18 +1,17 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/Xiof22/ToDoList/internal/service"
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
 	"strings"
-	"time"
 )
 
 const (
 	errInvalidTitle    = "Invalid title"
-	errInvalidID       = "Invalid ID"
+	errInvalidListID   = "Invalid list ID"
+	errInvalidTaskID   = "Invalid task ID"
 	errInvalidDeadline = "Unexpected deadline format"
 	timeLayout         = "2006-01-02T15:04"
 )
@@ -23,150 +22,6 @@ type Handlers struct {
 
 func New(svc *service.Service) *Handlers {
 	return &Handlers{svc: svc}
-}
-
-func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
-	title := getFormValueWithTrim(r, "title")
-	description := getFormValueWithTrim(r, "description")
-	deadlineStr := getFormValueWithTrim(r, "deadline")
-
-	if isEmpty(title) {
-		http.Error(w, errInvalidTitle, http.StatusBadRequest)
-		return
-	}
-
-	deadline, err := time.Parse(timeLayout, deadlineStr)
-	if err != nil && !isEmpty(deadlineStr) {
-		http.Error(w, errInvalidDeadline, http.StatusBadRequest)
-		return
-	}
-
-	err = h.svc.CreateTask(title, description, deadline)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	fmt.Fprint(w, "Created succefully")
-}
-
-func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.svc.GetTasks()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if len(tasks) == 0 {
-		fmt.Fprint(w, "There's no tasks")
-		return
-	}
-
-	for _, task := range tasks {
-		fmt.Fprint(w, task)
-	}
-}
-
-func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := getURLIntParam(r, "id")
-	if err != nil || !isPositive(id) {
-		http.Error(w, errInvalidID, http.StatusBadRequest)
-		return
-	}
-
-	task, err := h.svc.GetTask(id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if task == nil {
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprint(w, "Task not found")
-		return
-	}
-
-	fmt.Fprint(w, task)
-}
-
-func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := getURLIntParam(r, "id")
-	if err != nil || !isPositive(id) {
-		http.Error(w, errInvalidID, http.StatusBadRequest)
-		return
-	}
-
-	title := getFormValueWithTrim(r, "title")
-	description := getFormValueWithTrim(r, "description")
-	deadlineStr := getFormValueWithTrim(r, "deadline")
-
-	if isEmpty(title) {
-		http.Error(w, errInvalidTitle, http.StatusBadRequest)
-		return
-	}
-
-	deadline, err := time.Parse(timeLayout, deadlineStr)
-	if err != nil && !isEmpty(deadlineStr) {
-		http.Error(w, errInvalidDeadline, http.StatusBadRequest)
-		return
-	}
-
-	err = h.svc.EditTask(id, title, description, deadline)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	fmt.Fprint(w, "Edited succefully")
-}
-
-func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := getURLIntParam(r, "id")
-	if err != nil || !isPositive(id) {
-		http.Error(w, errInvalidID, http.StatusBadRequest)
-		return
-	}
-
-	err = h.svc.CompleteTask(id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	fmt.Fprint(w, "Completed task succefully")
-}
-
-func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := getURLIntParam(r, "id")
-	if err != nil || !isPositive(id) {
-		http.Error(w, errInvalidID, http.StatusBadRequest)
-		return
-	}
-
-	err = h.svc.UncompleteTask(id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	fmt.Fprint(w, "Uncompleted task succefully")
-}
-
-func (h *Handlers) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := getURLIntParam(r, "id")
-	if err != nil || !isPositive(id) {
-		http.Error(w, errInvalidID, http.StatusBadRequest)
-		return
-	}
-
-	err = h.svc.DeleteTask(id)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	fmt.Fprint(w, "Deleted succefully")
 }
 
 func getFormValueWithTrim(r *http.Request, key string) string {
