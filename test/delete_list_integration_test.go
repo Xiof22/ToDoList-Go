@@ -12,7 +12,7 @@ import (
 	"testing"
 )
 
-func TestDeleteTask(t *testing.T) {
+func TestDeleteList(t *testing.T) {
 	ts := newTestServer(t)
 	defer ts.Close()
 
@@ -21,20 +21,15 @@ func TestDeleteTask(t *testing.T) {
 	listResp := createList(t, client, ts.URL, sampleListMap)
 	listID := listResp.List.ID
 
-	taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
-	taskID := taskResp.Task.ID
-
 	tests := []struct {
 		name       string
 		listID     string
-		taskID     string
 		wantStatus int
 		wantError  *dto.ErrorsResponse
 	}{
 		{
 			name:       "List not found",
 			listID:     nilID,
-			taskID:     taskID,
 			wantStatus: http.StatusNotFound,
 			wantError: &dto.ErrorsResponse{
 				Errors: []string{errorsx.ErrListNotFound.Error()},
@@ -43,34 +38,14 @@ func TestDeleteTask(t *testing.T) {
 		{
 			name:       "Invalid list ID",
 			listID:     invalidID,
-			taskID:     taskID,
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
 				Errors: []string{errorsx.ErrInvalidListID.Error()},
 			},
 		},
 		{
-			name:       "Task not found",
-			listID:     listID,
-			taskID:     nilID,
-			wantStatus: http.StatusNotFound,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{errorsx.ErrTaskNotFound.Error()},
-			},
-		},
-		{
-			name:       "Invalid task ID",
-			listID:     listID,
-			taskID:     invalidID,
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{errorsx.ErrInvalidTaskID.Error()},
-			},
-		},
-		{
 			name:       "Success",
 			listID:     listID,
-			taskID:     taskID,
 			wantStatus: http.StatusNoContent,
 			wantError:  nil,
 		},
@@ -78,7 +53,7 @@ func TestDeleteTask(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, tt.listID, tt.taskID)
+			url := fmt.Sprintf("%s/lists/%s", ts.URL, tt.listID)
 
 			req, err := http.NewRequest(http.MethodDelete, url, nil)
 			require.NoError(t, err)

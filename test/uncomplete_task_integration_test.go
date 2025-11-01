@@ -18,17 +18,41 @@ func TestUncompleteTask(t *testing.T) {
 
 	client := ts.Client()
 
-	taskResp := createTask(t, client, ts.URL, sampleTaskMap)
+	listResp := createList(t, client, ts.URL, sampleListMap)
+	listID := listResp.List.ID
+
+	taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
 	taskID := taskResp.Task.ID
 
 	failTests := []struct {
 		name       string
+		listID     string
 		taskID     string
 		wantStatus int
 		wantError  dto.ErrorsResponse
 	}{
 		{
+			name:       "List not found",
+			listID:     nilID,
+			taskID:     taskID,
+			wantStatus: http.StatusNotFound,
+			wantError: dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrListNotFound.Error()},
+			},
+		},
+
+		{
+			name:       "Invalid list ID",
+			listID:     invalidID,
+			taskID:     taskID,
+			wantStatus: http.StatusBadRequest,
+			wantError: dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrInvalidListID.Error()},
+			},
+		},
+		{
 			name:       "Task not found",
+			listID:     listID,
 			taskID:     nilID,
 			wantStatus: http.StatusNotFound,
 			wantError: dto.ErrorsResponse{
@@ -37,6 +61,7 @@ func TestUncompleteTask(t *testing.T) {
 		},
 		{
 			name:       "Invalid task ID",
+			listID:     listID,
 			taskID:     invalidID,
 			wantStatus: http.StatusBadRequest,
 			wantError: dto.ErrorsResponse{
@@ -45,6 +70,7 @@ func TestUncompleteTask(t *testing.T) {
 		},
 		{
 			name:       "Task is already uncompleted",
+			listID:     listID,
 			taskID:     taskID,
 			wantStatus: http.StatusBadRequest,
 			wantError: dto.ErrorsResponse{
@@ -55,7 +81,7 @@ func TestUncompleteTask(t *testing.T) {
 
 	for _, tt := range failTests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("%s/tasks/%s/uncomplete", ts.URL, tt.taskID)
+			url := fmt.Sprintf("%s/lists/%s/tasks/%s/uncomplete", ts.URL, tt.listID, tt.taskID)
 
 			req, err := http.NewRequest(http.MethodPatch, url, nil)
 			require.NoError(t, err)
@@ -74,10 +100,10 @@ func TestUncompleteTask(t *testing.T) {
 	}
 
 	t.Run("Success", func(t *testing.T) {
-		taskResp := createTask(t, client, ts.URL, sampleTaskMap)
+		taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
 		taskID := taskResp.Task.ID
 
-		taskURL := fmt.Sprintf("%s/tasks/%s", ts.URL, taskID)
+		taskURL := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, listID, taskID)
 
 		req, err := http.NewRequest(http.MethodPatch, taskURL+"/complete", nil)
 		require.NoError(t, err)
