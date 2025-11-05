@@ -36,3 +36,7 @@ func (svc *Service) CompleteTask(id int) error {
 func (svc *Service) UncompleteTask(id int) error {
 	return svc.repo.Uncomplete(id)
 }
+
+func (svc *Service) DeleteTask(id int) error {
+	return svc.repo.Delete(id)
+}

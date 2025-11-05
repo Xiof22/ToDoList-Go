@@ -11,4 +11,5 @@ type Repository interface {
 	Edit(id int, title, description string) error
 	Complete(id int) error
 	Uncomplete(id int) error
+	Delete(id int) error
 }

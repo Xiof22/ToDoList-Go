@@ -136,6 +136,22 @@ func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request)
 	fmt.Fprint(w, "Uncompleted task succefully")
 }
 
+func (h *Handlers) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLIntParam(r, "id")
+	if err != nil || !isPositive(id) {
+		http.Error(w, errInvalidID, http.StatusBadRequest)
+		return
+	}
+
+	err = h.svc.DeleteTask(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Fprint(w, "Deleted succefully")
+}
+
 func getFormValueWithTrim(r *http.Request, key string) string {
 	return strings.TrimSpace(r.FormValue(key))
 }
