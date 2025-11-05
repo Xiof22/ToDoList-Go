@@ -73,3 +73,11 @@ func (svc *Service) UncompleteTask(ctx context.Context, taskID models.TaskID) er
 	_, err = svc.repo.EditTask(ctx, taskID, task)
 	return err
 }
+
+func (svc *Service) DeleteTask(ctx context.Context, taskID models.TaskID) error {
+	if _, err := svc.repo.GetTask(ctx, taskID); err != nil {
+		return err
+	}
+
+	return svc.repo.DeleteTask(ctx, taskID)
+}
