@@ -10,4 +10,5 @@ type Repository interface {
 	GetTasks(ctx context.Context) ([]models.Task, error)
 	GetTask(ctx context.Context, taskID models.TaskID) (models.Task, error)
 	EditTask(ctx context.Context, taskID models.TaskID, task models.Task) (models.Task, error)
+	DeleteTask(ctx context.Context, taskID models.TaskID) error
 }
