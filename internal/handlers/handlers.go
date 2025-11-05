@@ -146,3 +146,24 @@ func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handlers) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := getURLIntParam(r, "id")
+	if err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	req := dto.TaskIdentifier{ID: id}
+	if err := validator.Validate.Struct(&req); err != nil {
+		writeError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := h.svc.DeleteTask(r.Context(), req); err != nil {
+		writeError(w, http.StatusNotFound, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

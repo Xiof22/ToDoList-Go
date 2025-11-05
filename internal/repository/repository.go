@@ -13,4 +13,5 @@ type Repository interface {
 	EditTask(ctx context.Context, dto dto.EditTaskRequest) models.Task
 	CompleteTask(ctx context.Context, req dto.TaskIdentifier)
 	UncompleteTask(ctx context.Context, req dto.TaskIdentifier)
+	DeleteTask(ctx context.Context, req dto.TaskIdentifier)
 }
