@@ -42,6 +42,24 @@ func (_m *Repository) CreateTask(ctx context.Context, task models.Task) (models.
 	return r0, r1
 }
 
+// DeleteTask provides a mock function with given fields: ctx, taskID
+func (_m *Repository) DeleteTask(ctx context.Context, taskID models.TaskID) error {
+	ret := _m.Called(ctx, taskID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteTask")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.TaskID) error); ok {
+		r0 = rf(ctx, taskID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // EditTask provides a mock function with given fields: ctx, taskID, task
 func (_m *Repository) EditTask(ctx context.Context, taskID models.TaskID, task models.Task) (models.Task, error) {
 	ret := _m.Called(ctx, taskID, task)

@@ -77,3 +77,15 @@ func (repo *Repository) EditTask(ctx context.Context, taskID models.TaskID, task
 
 	return task, nil
 }
+
+func (repo *Repository) DeleteTask(ctx context.Context, taskID models.TaskID) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	delete(repo.Tasks, taskID)
+	return nil
+}

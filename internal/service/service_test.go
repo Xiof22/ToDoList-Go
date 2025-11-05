@@ -181,3 +181,46 @@ func TestUncompleteTask_AlreadyUncompleted(t *testing.T) {
 	err := svc.UncompleteTask(t.Context(), task.ID)
 	assert.ErrorIs(t, err, errorsx.ErrAlreadyUncompleted)
 }
+
+func TestDeleteTask_Success(t *testing.T) {
+	repo := mocks.NewRepository(t)
+	svc := New(repo)
+	task := models.NewTask("Test Title", "Test Description")
+
+	repo.On("GetTask", mock.Anything, task.ID).Return(task, nil)
+	repo.On("DeleteTask", mock.Anything, task.ID).Return(nil)
+
+	err := svc.DeleteTask(t.Context(), task.ID)
+	assert.NoError(t, err)
+
+	repo.AssertExpectations(t)
+}
+
+func TestDeleteTask_RepoErrors(t *testing.T) {
+	tests := []struct {
+		name    string
+		mockErr error
+		wantErr error
+	}{
+		{
+			name:    "Task not found",
+			mockErr: errorsx.ErrTaskNotFound,
+			wantErr: errorsx.ErrTaskNotFound,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			repo := mocks.NewRepository(t)
+			svc := New(repo)
+			taskID := models.TaskID(uuid.New())
+
+			repo.On("GetTask", mock.Anything, taskID).Return(models.Task{}, tt.mockErr)
+
+			err := svc.DeleteTask(t.Context(), taskID)
+			assert.ErrorIs(t, err, tt.wantErr)
+
+			repo.AssertExpectations(t)
+		})
+	}
+}

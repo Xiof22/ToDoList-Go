@@ -160,3 +160,21 @@ func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request)
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handlers) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	taskID, err := pathID(r, pathKeyTaskID)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
+		return
+	}
+
+	if err := h.svc.DeleteTask(r.Context(), taskID); err != nil {
+		if !errors.Is(err, context.Canceled) {
+			responses.WriteError(w, http.StatusNotFound, err)
+		}
+
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
