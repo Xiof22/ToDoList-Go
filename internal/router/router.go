@@ -14,6 +14,7 @@ func New(h *handlers.Handlers) *chi.Mux {
 	r.Patch("/tasks/{id}", h.EditTaskHandler)
 	r.Patch("/tasks/{id}/complete", h.CompleteTaskHandler)
 	r.Patch("/tasks/{id}/uncomplete", h.UncompleteTaskHandler)
+	r.Delete("/tasks/{id}", h.DeleteTaskHandler)
 
 	return r
 }

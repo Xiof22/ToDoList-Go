@@ -85,3 +85,10 @@ func (repo *Repository) UncompleteTask(ctx context.Context, req dto.TaskIdentifi
 	task := repo.Tasks[req.ID]
 	task.IsCompleted = false
 }
+
+func (repo *Repository) DeleteTask(ctx context.Context, req dto.TaskIdentifier) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	delete(repo.Tasks, req.ID)
+}

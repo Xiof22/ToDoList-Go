@@ -62,3 +62,14 @@ func (svc *Service) UncompleteTask(ctx context.Context, req dto.TaskIdentifier) 
 	svc.repo.UncompleteTask(ctx, req)
 	return nil
 }
+
+func (svc *Service) DeleteTask(ctx context.Context, req dto.TaskIdentifier) error {
+	if _, found := svc.repo.GetTask(ctx, dto.TaskIdentifier{
+		ID: req.ID,
+	}); !found {
+		return ErrTaskNotFound
+	}
+
+	svc.repo.DeleteTask(ctx, req)
+	return nil
+}
