@@ -13,6 +13,12 @@ import (
 )
 
 func (h *Handlers) CreateListHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	var req dto.CreateListRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		responses.WriteError(w, http.StatusBadRequest, err)
@@ -25,7 +31,7 @@ func (h *Handlers) CreateListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	list, err := h.svc.CreateList(r.Context(), req)
+	list, err := h.svc.CreateList(r.Context(), info, req)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
 			responses.WriteError(w, responses.MapError(err), err)
@@ -35,14 +41,20 @@ func (h *Handlers) CreateListHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := dto.ListResponse{
-		List: dto.ToListDTO(list),
+		List: dto.ToListDTO(list, false),
 	}
 
 	responses.WriteJSON(w, http.StatusCreated, resp)
 }
 
 func (h *Handlers) GetListsHandler(w http.ResponseWriter, r *http.Request) {
-	lists, err := h.svc.GetLists(r.Context())
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	lists, err := h.svc.GetLists(r.Context(), info)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
 			responses.WriteError(w, http.StatusInternalServerError, err)
@@ -51,22 +63,29 @@ func (h *Handlers) GetListsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	withOwnerID := info.Role == models.Admin
 	resp := dto.ListsResponse{
 		Count: len(lists),
-		Lists: dto.ToListDTOs(lists),
+		Lists: dto.ToListDTOs(lists, withOwnerID),
 	}
 
 	responses.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *Handlers) GetListHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
-	list, err := h.svc.GetList(r.Context(), listID)
+	list, err := h.svc.GetList(r.Context(), info, listID)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
 			responses.WriteError(w, responses.MapError(err), err)
@@ -75,14 +94,21 @@ func (h *Handlers) GetListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	withOwnerID := info.ID != list.OwnerID
 	resp := dto.ListResponse{
-		List: dto.ToListDTO(list),
+		List: dto.ToListDTO(list, withOwnerID),
 	}
 
 	responses.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *Handlers) EditListHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
@@ -101,7 +127,7 @@ func (h *Handlers) EditListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	list, err := h.svc.EditList(r.Context(), listID, req)
+	list, err := h.svc.EditList(r.Context(), info, listID, req)
 	if err != nil {
 		if !errors.Is(err, context.Canceled) {
 			responses.WriteError(w, responses.MapError(err), err)
@@ -110,21 +136,28 @@ func (h *Handlers) EditListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	withOwnerID := list.OwnerID != info.ID
 	resp := dto.ListResponse{
-		List: dto.ToListDTO(list),
+		List: dto.ToListDTO(list, withOwnerID),
 	}
 
 	responses.WriteJSON(w, http.StatusOK, resp)
 }
 
 func (h *Handlers) DeleteListHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
-	if err := h.svc.DeleteList(r.Context(), listID); err != nil {
+	if err := h.svc.DeleteList(r.Context(), info, listID); err != nil {
 		if !errors.Is(err, context.Canceled) {
 			responses.WriteError(w, responses.MapError(err), err)
 		}

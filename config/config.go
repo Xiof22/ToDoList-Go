@@ -2,17 +2,23 @@ package config
 
 import (
 	"fmt"
+	"github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/caarlos0/env"
 	"github.com/joho/godotenv"
 	"time"
 )
 
 type Config struct {
-	Addr            string        `env:"APP_ADDR" envDefault:":8080"`
-	ReadTimeout     time.Duration `env:"READ_TIMEOUT" envDefault:"5s"`
-	WriteTimeout    time.Duration `env:"WRITE_TIMEOUT" envDefault:"10s"`
-	IdleTimeout     time.Duration `env:"IDLE_TIMEOUT" envDefault:"120s"`
-	ShutdownTimeout time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"5s"`
+	Addr             string        `env:"APP_ADDR" envDefault:":8080"`
+	ReadTimeout      time.Duration `env:"READ_TIMEOUT" envDefault:"5s"`
+	WriteTimeout     time.Duration `env:"WRITE_TIMEOUT" envDefault:"10s"`
+	IdleTimeout      time.Duration `env:"IDLE_TIMEOUT" envDefault:"120s"`
+	ShutdownTimeout  time.Duration `env:"SHUTDOWN_TIMEOUT" envDefault:"5s"`
+	TimezoneLocation string        `env:"TIMEZONE_LOCATION" envDefault:"Asia/Ashgabat"`
+	CookieStoreKey   string        `env:"COOKIE_STORE_KEY,required" validate:"min=8"`
+	SessionName      string        `env:"SESSION_NAME,required"`
+	AdminEmail       string        `env:"ADMIN_EMAIL,required" validate:"email"`
+	AdminPassword    string        `env:"ADMIN_PASSWORD,required" validate:"min=4,max=8"`
 }
 
 func LoadConfig() (*Config, error) {
@@ -26,5 +32,5 @@ func LoadConfig() (*Config, error) {
 		return nil, err
 	}
 
-	return cfg, nil
+	return cfg, validator.Validate.Struct(cfg)
 }

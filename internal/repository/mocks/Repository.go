@@ -70,6 +70,34 @@ func (_m *Repository) CreateTask(ctx context.Context, listID models.ListID, task
 	return r0, r1
 }
 
+// CreateUser provides a mock function with given fields: ctx, user
+func (_m *Repository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
+	ret := _m.Called(ctx, user)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateUser")
+	}
+
+	var r0 models.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.User) (models.User, error)); ok {
+		return rf(ctx, user)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.User) models.User); ok {
+		r0 = rf(ctx, user)
+	} else {
+		r0 = ret.Get(0).(models.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.User) error); ok {
+		r1 = rf(ctx, user)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // DeleteList provides a mock function with given fields: ctx, listID
 func (_m *Repository) DeleteList(ctx context.Context, listID models.ListID) error {
 	ret := _m.Called(ctx, listID)
@@ -99,6 +127,24 @@ func (_m *Repository) DeleteTask(ctx context.Context, listID models.ListID, task
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, models.ListID, models.TaskID) error); ok {
 		r0 = rf(ctx, listID, taskID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteUser provides a mock function with given fields: ctx, userID
+func (_m *Repository) DeleteUser(ctx context.Context, userID models.UserID) error {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteUser")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UserID) error); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -220,6 +266,36 @@ func (_m *Repository) GetLists(ctx context.Context) ([]models.List, error) {
 	return r0, r1
 }
 
+// GetListsByUserID provides a mock function with given fields: ctx, userID
+func (_m *Repository) GetListsByUserID(ctx context.Context, userID models.UserID) ([]models.List, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetListsByUserID")
+	}
+
+	var r0 []models.List
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UserID) ([]models.List, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.UserID) []models.List); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.List)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.UserID) error); ok {
+		r1 = rf(ctx, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetTask provides a mock function with given fields: ctx, listID, taskID
 func (_m *Repository) GetTask(ctx context.Context, listID models.ListID, taskID models.TaskID) (models.Task, error) {
 	ret := _m.Called(ctx, listID, taskID)
@@ -271,6 +347,62 @@ func (_m *Repository) GetTasks(ctx context.Context, listID models.ListID) ([]mod
 
 	if rf, ok := ret.Get(1).(func(context.Context, models.ListID) error); ok {
 		r1 = rf(ctx, listID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUserByEmail provides a mock function with given fields: ctx, email
+func (_m *Repository) GetUserByEmail(ctx context.Context, email string) (models.User, error) {
+	ret := _m.Called(ctx, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByEmail")
+	}
+
+	var r0 models.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (models.User, error)); ok {
+		return rf(ctx, email)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) models.User); ok {
+		r0 = rf(ctx, email)
+	} else {
+		r0 = ret.Get(0).(models.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUserByID provides a mock function with given fields: ctx, userID
+func (_m *Repository) GetUserByID(ctx context.Context, userID models.UserID) (models.User, error) {
+	ret := _m.Called(ctx, userID)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByID")
+	}
+
+	var r0 models.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, models.UserID) (models.User, error)); ok {
+		return rf(ctx, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, models.UserID) models.User); ok {
+		r0 = rf(ctx, userID)
+	} else {
+		r0 = ret.Get(0).(models.User)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, models.UserID) error); ok {
+		r1 = rf(ctx, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
