@@ -7,19 +7,23 @@ import (
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"net/http/cookiejar"
 	"testing"
 )
 
 func TestGetLists(t *testing.T) {
-	ts := newTestServer()
+	ts := newTestServer(t)
 	defer ts.Close()
 
+	jar, _ := cookiejar.New(nil)
 	client := ts.Client()
+	client.Jar = jar
+
+	createUser(t, client, ts.URL, newUserMap("GetLists@gmail.com", "0000"))
 
 	url := fmt.Sprintf("%s/lists", ts.URL)
 
 	t.Run("No lists", func(t *testing.T) {
-
 		resp, err := client.Get(url)
 		require.NoError(t, err)
 		defer resp.Body.Close()

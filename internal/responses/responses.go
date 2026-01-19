@@ -1,4 +1,4 @@
-package handlers
+package responses
 
 import (
 	"encoding/json"
@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func writeJSON(w http.ResponseWriter, status int, data any) {
+func WriteJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(status)
 
@@ -27,8 +27,8 @@ func writeJSON(w http.ResponseWriter, status int, data any) {
 	}
 }
 
-func writeError(w http.ResponseWriter, status int, err error) {
-	writeJSON(w, status, dto.ErrorsResponse{
+func WriteError(w http.ResponseWriter, status int, err error) {
+	WriteJSON(w, status, dto.ErrorsResponse{
 		Errors: formatError(err),
 	})
 }

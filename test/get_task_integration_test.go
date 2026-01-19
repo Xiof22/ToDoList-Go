@@ -8,15 +8,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
+	"net/http/cookiejar"
 	"strconv"
 	"testing"
 )
 
 func TestGetTask(t *testing.T) {
-	ts := newTestServer()
+	ts := newTestServer(t)
 	defer ts.Close()
 
+	jar, _ := cookiejar.New(nil)
 	client := ts.Client()
+	client.Jar = jar
+
+	createUser(t, client, ts.URL, newUserMap("GetTask@gmail.com", "0000"))
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
 	listID := listResp.List.ID
@@ -52,7 +57,7 @@ func TestGetTask(t *testing.T) {
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'ListID' doesn't match the rule 'gt'"},
+				Errors: []string{"Invalid list ID"},
 			},
 		},
 		{
@@ -62,18 +67,18 @@ func TestGetTask(t *testing.T) {
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id'"},
+				Errors: []string{"Failed to parse 'list_id' from URL"},
 			},
 		},
 		{
-			name:       "Task not found",
-			listID:     strListID,
-			taskID:     "999",
-			wantStatus: http.StatusNotFound,
-			wantResponse: &dto.TaskResponse{
-				Task: nil,
+			name:         "Task not found",
+			listID:       strListID,
+			taskID:       "999",
+			wantStatus:   http.StatusNotFound,
+			wantResponse: nil,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{"Task not found"},
 			},
-			wantError: nil,
 		},
 		{
 			name:         "Task ID less than 1",
@@ -82,7 +87,7 @@ func TestGetTask(t *testing.T) {
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'TaskID' doesn't match the rule 'gt'"},
+				Errors: []string{"Invalid task ID"},
 			},
 		},
 		{
@@ -92,7 +97,7 @@ func TestGetTask(t *testing.T) {
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'task_id'"},
+				Errors: []string{"Failed to parse 'task_id' from URL"},
 			},
 		},
 		{
@@ -101,7 +106,7 @@ func TestGetTask(t *testing.T) {
 			taskID:     strTaskID,
 			wantStatus: http.StatusOK,
 			wantResponse: &dto.TaskResponse{
-				Task: &sampleTask,
+				Task: sampleTask,
 			},
 			wantError: nil,
 		},
@@ -127,11 +132,6 @@ func TestGetTask(t *testing.T) {
 
 			gotResponse := &dto.TaskResponse{}
 			require.NoError(t, json.NewDecoder(resp.Body).Decode(gotResponse))
-
-			if tt.wantResponse.Task == nil {
-				assert.Equal(t, tt.wantResponse, gotResponse)
-				return
-			}
 
 			assert.Equal(t, tt.wantResponse.Task.Title, gotResponse.Task.Title)
 			assert.Equal(t, tt.wantResponse.Task.Description, gotResponse.Task.Description)

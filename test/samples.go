@@ -5,6 +5,13 @@ import (
 	"time"
 )
 
+func newUserMap(email, password string) map[string]any {
+	return map[string]any{
+		"email":    email,
+		"password": password,
+	}
+}
+
 var sampleList dto.List = dto.List{
 	Title:       "Sample list title",
 	Description: "Sample list description",

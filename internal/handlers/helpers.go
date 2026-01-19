@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"errors"
-	"fmt"
-	"github.com/Xiof22/ToDoList/internal/service"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
+	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/go-chi/chi"
+	"github.com/gorilla/sessions"
 	"net/http"
 	"reflect"
 	"strconv"
@@ -31,24 +31,44 @@ func getURLIntParam(r *http.Request, key string) (int, error) {
 	paramStr := chi.URLParam(r, key)
 	id, err := strconv.Atoi(paramStr)
 	if err != nil {
-		return 0, fmt.Errorf("Failed to parse '%s'", key)
+		return 0, errorsx.ErrParseURL(key)
 	}
 
 	return id, nil
 }
 
-func mapTaskError(err error) int {
-	switch {
-	case errors.Is(err, service.ErrAlreadyCompleted),
-		errors.Is(err, service.ErrAlreadyUncompleted),
-		errors.Is(err, service.ErrDeadlineBeforeCreation):
-		return http.StatusBadRequest
+func (h *Handlers) createSession(r *http.Request, w http.ResponseWriter, info models.UserInfo) error {
+	session, _ := h.cs.Get(r, h.cfg.SessionName)
+	session.Values[sessionKeyUserID] = info.ID
+	session.Values[sessionKeyUserRole] = int(info.Role)
 
-	case errors.Is(err, service.ErrListNotFound),
-		errors.Is(err, service.ErrTaskNotFound):
-		return http.StatusNotFound
+	return session.Save(r, w)
+}
 
-	default:
-		return http.StatusInternalServerError
+func (h *Handlers) getUserInfoFromSession(r *http.Request) (models.UserInfo, error) {
+	session, _ := h.cs.Get(r, h.cfg.SessionName)
+
+	id, ok := session.Values[sessionKeyUserID].(int)
+	if !ok {
+		return models.UserInfo{}, errorsx.ErrInvalidSession
 	}
+
+	role, ok := session.Values[sessionKeyUserRole].(int)
+	if !ok {
+		return models.UserInfo{}, errorsx.ErrInvalidSession
+	}
+
+	info := models.UserInfo{
+		ID:   id,
+		Role: models.Role(role),
+	}
+
+	return info, nil
+}
+
+func (h *Handlers) deleteSession(r *http.Request, w http.ResponseWriter) error {
+	session, _ := h.cs.Get(r, h.cfg.SessionName)
+	session.Options.MaxAge = -1
+
+	return sessions.Save(r, w)
 }

@@ -8,15 +8,20 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
+	"net/http/cookiejar"
 	"strconv"
 	"testing"
 )
 
 func TestGetTasks(t *testing.T) {
-	ts := newTestServer()
+	ts := newTestServer(t)
 	defer ts.Close()
 
+	jar, _ := cookiejar.New(nil)
 	client := ts.Client()
+	client.Jar = jar
+
+	createUser(t, client, ts.URL, newUserMap("GetTasks@gmail.com", "0000"))
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
 	listID := listResp.List.ID
@@ -44,7 +49,7 @@ func TestGetTasks(t *testing.T) {
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'ID' doesn't match the rule 'gt'"},
+				Errors: []string{"Invalid list ID"},
 			},
 		},
 		{
@@ -53,7 +58,7 @@ func TestGetTasks(t *testing.T) {
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id'"},
+				Errors: []string{"Failed to parse 'list_id' from URL"},
 			},
 		},
 		{

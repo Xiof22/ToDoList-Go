@@ -13,17 +13,13 @@ type Task struct {
 	Deadline    *time.Time `json:"deadline,omitempty"`
 }
 
-func ToTaskDTO(t *models.Task) *Task {
-	if t == nil {
-		return nil
-	}
-
+func ToTaskDTO(t models.Task) Task {
 	var deadline *time.Time = nil
 	if !t.Deadline.IsZero() {
 		deadline = &t.Deadline
 	}
 
-	return &Task{
+	return Task{
 		ID:          t.ID,
 		Title:       t.Title,
 		Description: t.Description,
@@ -35,7 +31,7 @@ func ToTaskDTO(t *models.Task) *Task {
 func ToTaskDTOs(tasks []models.Task) []Task {
 	taskDTOs := make([]Task, len(tasks))
 	for i, t := range tasks {
-		taskDTOs[i] = *ToTaskDTO(&t)
+		taskDTOs[i] = ToTaskDTO(t)
 	}
 
 	return taskDTOs

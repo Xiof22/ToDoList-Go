@@ -1,5 +1,5 @@
 package dto
 
 type TaskResponse struct {
-	Task *Task `json:"task"`
+	Task Task `json:"task"`
 }

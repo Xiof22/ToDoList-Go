@@ -1,49 +1,31 @@
 package memory
 
-import "github.com/Xiof22/ToDoList/internal/models"
+import (
+	"cmp"
+	"github.com/Xiof22/ToDoList/internal/models"
+	"slices"
+)
 
-func sortTasks(tasks []models.Task) []models.Task {
-	if len(tasks) <= 1 {
-		return tasks
-	}
+func sortTasksByID(tasks []models.Task) []models.Task {
+	slices.SortFunc(tasks, func(a, b models.Task) int {
+		return cmp.Compare(a.ID, b.ID)
+	})
 
-	for {
-		swapped := false
-
-		for current := 0; current < len(tasks)-1; current++ {
-			next := current + 1
-
-			if tasks[current].ID > tasks[next].ID {
-				tasks[current], tasks[next] = tasks[next], tasks[current]
-				swapped = true
-			}
-		}
-
-		if !swapped {
-			return tasks
-		}
-	}
+	return tasks
 }
 
-func sortLists(lists []models.List) []models.List {
-	if len(lists) <= 1 {
-		return lists
-	}
+func sortListsByID(lists []models.List) []models.List {
+	slices.SortFunc(lists, func(a, b models.List) int {
+		return cmp.Compare(a.ID, b.ID)
+	})
 
-	for {
-		swapped := false
+	return lists
+}
 
-		for current := 1; current < len(lists)-1; current++ {
-			next := current + 1
+func sortListsByOwnerID(lists []models.List) []models.List {
+	slices.SortFunc(lists, func(a, b models.List) int {
+		return cmp.Compare(a.OwnerID, b.OwnerID)
+	})
 
-			if lists[current].ID > lists[next].ID {
-				lists[current], lists[next] = lists[next], lists[current]
-				swapped = true
-			}
-		}
-
-		if !swapped {
-			return lists
-		}
-	}
+	return lists
 }

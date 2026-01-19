@@ -2,24 +2,17 @@ package memory
 
 import (
 	"context"
-	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/models"
 )
 
-func (repo *Repository) CreateList(ctx context.Context, req dto.CreateListRequest) models.List {
-	list := models.List{
-		ID:          repo.nextID,
-		Title:       req.Title,
-		Description: req.Description,
-		Tasks:       make(map[int]*models.Task),
-		NextID:      1,
-	}
-
+func (repo *Repository) CreateList(ctx context.Context, list models.List) models.List {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	repo.Lists[repo.nextID] = &list
-	repo.nextID++
+	list.ID = repo.listNextID
+	repo.Lists[repo.listNextID] = &list
+	repo.listNextID++
 
 	return list
 }
@@ -28,38 +21,51 @@ func (repo *Repository) GetLists(ctx context.Context) []models.List {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	listCount := len(repo.Lists)
-	lists := make([]models.List, 0, listCount)
-
+	lists := make([]models.List, 0, len(repo.Lists))
 	for _, list := range repo.Lists {
 		lists = append(lists, *list)
 	}
 
-	return sortLists(lists)
+	return sortListsByOwnerID(lists)
 }
 
-func (repo *Repository) GetList(ctx context.Context, req dto.ListIdentifier) (*models.List, bool) {
+func (repo *Repository) GetListsByUserID(ctx context.Context, userID int) []models.List {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	list, found := repo.Lists[req.ID]
-	return list, found
+	var lists []models.List
+	for _, list := range repo.Lists {
+		if list.OwnerID == userID {
+			lists = append(lists, *list)
+		}
+	}
+
+	return sortListsByID(lists)
 }
 
-func (repo *Repository) EditList(ctx context.Context, req dto.EditListRequest) models.List {
+func (repo *Repository) GetList(ctx context.Context, listID int) (models.List, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	list := repo.Lists[req.ListID]
-	list.Title = req.Title
-	list.Description = req.Description
+	list, ok := repo.Lists[listID]
+	if !ok {
+		return models.List{}, errorsx.ErrListNotFound
+	}
 
-	return *list
+	return *list, nil
 }
 
-func (repo *Repository) DeleteList(ctx context.Context, req dto.ListIdentifier) {
+func (repo *Repository) EditList(ctx context.Context, listID int, list models.List) error {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	delete(repo.Lists, req.ID)
+	repo.Lists[listID] = &list
+	return nil
+}
+
+func (repo *Repository) DeleteList(ctx context.Context, listID int) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	delete(repo.Lists, listID)
 }

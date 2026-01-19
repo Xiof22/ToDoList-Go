@@ -11,3 +11,13 @@ type Task struct {
 	Deadline    time.Time
 	UpdatedAt   time.Time
 }
+
+func NewTask(title, description string, deadline time.Time) Task {
+	return Task{
+		Title:       title,
+		Description: description,
+		IsCompleted: false,
+		CreatedAt:   time.Now(),
+		Deadline:    deadline,
+	}
+}

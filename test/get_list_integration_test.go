@@ -7,16 +7,21 @@ import (
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"net/http/cookiejar"
 	"net/http"
 	"strconv"
 	"testing"
 )
 
 func TestGetList(t *testing.T) {
-	ts := newTestServer()
+	ts := newTestServer(t)
 	defer ts.Close()
 
+	jar, _ := cookiejar.New(nil)
 	client := ts.Client()
+	client.Jar = jar
+
+	createUser(t, client, ts.URL, newUserMap("GetList@gmail.com", "0000"))
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
 	strListID := strconv.Itoa(listResp.List.ID)
@@ -29,13 +34,13 @@ func TestGetList(t *testing.T) {
 		wantError    *dto.ErrorsResponse
 	}{
 		{
-			name:       "List not found",
-			listID:     "999",
-			wantStatus: http.StatusNotFound,
-			wantResponse: &dto.ListResponse{
-				List: nil,
+			name:         "List not found",
+			listID:       "999",
+			wantStatus:   http.StatusNotFound,
+			wantResponse: nil,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{"List not found"},
 			},
-			wantError: nil,
 		},
 		{
 			name:         "List ID less than 1",
@@ -43,7 +48,7 @@ func TestGetList(t *testing.T) {
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'ID' doesn't match the rule 'gt'"},
+				Errors: []string{"Invalid list ID"},
 			},
 		},
 		{
@@ -52,7 +57,7 @@ func TestGetList(t *testing.T) {
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id'"},
+				Errors: []string{"Failed to parse 'list_id' from URL"},
 			},
 		},
 		{
@@ -60,7 +65,7 @@ func TestGetList(t *testing.T) {
 			listID:     strListID,
 			wantStatus: http.StatusOK,
 			wantResponse: &dto.ListResponse{
-				List: &sampleList,
+				List: sampleList,
 			},
 			wantError: nil,
 		},
@@ -86,11 +91,6 @@ func TestGetList(t *testing.T) {
 
 			gotResponse := &dto.ListResponse{}
 			require.NoError(t, json.NewDecoder(resp.Body).Decode(gotResponse))
-
-			if tt.wantResponse.List == nil {
-				assert.Equal(t, tt.wantResponse, gotResponse)
-				return
-			}
 
 			assert.Equal(t, tt.wantResponse.List.Title, gotResponse.List.Title)
 			assert.Equal(t, tt.wantResponse.List.Description, gotResponse.List.Description)
