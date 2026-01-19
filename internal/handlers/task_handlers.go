@@ -11,6 +11,12 @@ import (
 )
 
 func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
@@ -29,7 +35,7 @@ func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.svc.CreateTask(r.Context(), listID, req)
+	task, err := h.svc.CreateTask(r.Context(), info, listID, req)
 	if err != nil {
 		responses.WriteError(w, responses.MapError(err), err)
 		return
@@ -43,13 +49,19 @@ func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
-	tasks, err := h.svc.GetTasks(r.Context(), listID)
+	tasks, err := h.svc.GetTasks(r.Context(), info, listID)
 	if err != nil {
 		responses.WriteError(w, responses.MapError(err), err)
 		return
@@ -64,6 +76,12 @@ func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
@@ -76,7 +94,7 @@ func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.svc.GetTask(r.Context(), listID, taskID)
+	task, err := h.svc.GetTask(r.Context(), info, listID, taskID)
 	if err != nil {
 		responses.WriteError(w, responses.MapError(err), err)
 		return
@@ -90,6 +108,12 @@ func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
@@ -114,7 +138,7 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	task, err := h.svc.EditTask(r.Context(), listID, taskID, req)
+	task, err := h.svc.EditTask(r.Context(), info, listID, taskID, req)
 	if err != nil {
 		responses.WriteError(w, responses.MapError(err), err)
 		return
@@ -128,6 +152,12 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
@@ -140,7 +170,7 @@ func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.CompleteTask(r.Context(), listID, taskID); err != nil {
+	if err := h.svc.CompleteTask(r.Context(), info, listID, taskID); err != nil {
 		responses.WriteError(w, responses.MapError(err), err)
 		return
 	}
@@ -149,6 +179,12 @@ func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
@@ -161,7 +197,7 @@ func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if err := h.svc.UncompleteTask(r.Context(), listID, taskID); err != nil {
+	if err := h.svc.UncompleteTask(r.Context(), info, listID, taskID); err != nil {
 		responses.WriteError(w, responses.MapError(err), err)
 		return
 	}
@@ -170,6 +206,12 @@ func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (h *Handlers) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	info, err := h.getUserInfoFromSession(r)
+	if err != nil {
+		responses.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
 		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
@@ -182,7 +224,7 @@ func (h *Handlers) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.svc.DeleteTask(r.Context(), listID, taskID); err != nil {
+	if err := h.svc.DeleteTask(r.Context(), info, listID, taskID); err != nil {
 		responses.WriteError(w, responses.MapError(err), err)
 		return
 	}

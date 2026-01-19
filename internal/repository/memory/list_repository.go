@@ -27,6 +27,20 @@ func (repo *Repository) GetLists(ctx context.Context) ([]models.List, error) {
 	return lists, nil
 }
 
+func (repo *Repository) GetListsByUserID(ctx context.Context, userID models.UserID) ([]models.List, error) {
+	repo.mu.Lock()
+	defer repo.mu.Unlock()
+
+	var lists []models.List
+	for _, list := range repo.Lists {
+		if list.OwnerID == userID {
+			lists = append(lists, *list)
+		}
+	}
+
+	return lists, nil
+}
+
 func (repo *Repository) GetList(ctx context.Context, listID models.ListID) (models.List, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
