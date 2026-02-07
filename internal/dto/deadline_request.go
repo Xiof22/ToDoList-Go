@@ -2,7 +2,7 @@ package dto
 
 import (
 	"encoding/json"
-	"errors"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"time"
 )
 
@@ -13,7 +13,7 @@ type DeadlineRequest struct {
 func (d *DeadlineRequest) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err != nil {
-		return errors.New("Deadline unmarshalling error")
+		return errorsx.ErrUnmarshalDeadline
 	}
 
 	if s == "" || s == "null" {
@@ -23,7 +23,7 @@ func (d *DeadlineRequest) UnmarshalJSON(data []byte) error {
 
 	parsed, err := time.Parse(time.DateTime, s)
 	if err != nil {
-		return errors.New("Unexpected deadline format")
+		return errorsx.ErrInvalidDeadlineFormat
 	}
 
 	d.Value = parsed

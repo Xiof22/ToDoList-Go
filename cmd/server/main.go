@@ -2,13 +2,15 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/Xiof22/ToDoList/config"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/handlers"
 	"github.com/Xiof22/ToDoList/internal/middleware"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/Xiof22/ToDoList/internal/repository"
-	"github.com/Xiof22/ToDoList/internal/repository/memory"
+	"github.com/Xiof22/ToDoList/internal/repository/mysql"
 	"github.com/Xiof22/ToDoList/internal/router"
 	"github.com/Xiof22/ToDoList/internal/service"
 	_ "github.com/Xiof22/ToDoList/internal/validator"
@@ -32,13 +34,17 @@ func main() {
 	}
 
 	cs := sessions.NewCookieStore([]byte(cfg.CookieStoreKey))
-	m := memory.New()
-	svc := service.New(m)
+	repo, err := mysql.New(cfg.DBDSN)
+	if err != nil {
+		panic(err)
+	}
+
+	svc := service.New(repo)
 	h := handlers.New(svc, cs, cfg)
 	mw := middleware.New(cs, cfg)
 	r := router.New(h, mw)
 
-	if err := seedAdmin(m, cfg.AdminEmail, cfg.AdminPassword); err != nil {
+	if err := seedAdmin(repo, cfg.AdminEmail, cfg.AdminPassword); err != nil {
 		fmt.Println("Failed to seed admin:", err)
 	}
 
@@ -51,6 +57,15 @@ func main() {
 func seedAdmin(repo repository.Repository, email, password string) error {
 	ctx := context.Background()
 
+	_, err := repo.GetUserByEmail(ctx, email)
+	if err == nil {
+		return nil
+	}
+
+	if !errors.Is(err, errorsx.ErrUserNotFound) {
+		return err
+	}
+
 	admin, err := models.NewUser(email, password)
 	if err != nil {
 		return err
@@ -60,4 +75,3 @@ func seedAdmin(repo repository.Repository, email, password string) error {
 	repo.CreateUser(ctx, admin)
 	return nil
 }
-

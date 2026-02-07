@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/Xiof22/ToDoList/internal/responses"
 	"github.com/Xiof22/ToDoList/internal/validator"
@@ -48,7 +49,12 @@ func (h *Handlers) GetListsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lists := h.svc.GetLists(r.Context(), info)
+	lists, err := h.svc.GetLists(r.Context(), info)
+	if err != nil {
+		responses.WriteError(w, http.StatusInternalServerError, err) // check status
+		return
+	}
+
 	withOwnerID := info.Role == models.Admin
 	resp := dto.ListsResponse{
 		Count: len(lists),
@@ -65,9 +71,9 @@ func (h *Handlers) GetListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
@@ -92,9 +98,9 @@ func (h *Handlers) EditListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
@@ -131,9 +137,9 @@ func (h *Handlers) DeleteListHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 

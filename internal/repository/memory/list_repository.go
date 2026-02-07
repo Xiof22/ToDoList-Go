@@ -6,18 +6,16 @@ import (
 	"github.com/Xiof22/ToDoList/internal/models"
 )
 
-func (repo *Repository) CreateList(ctx context.Context, list models.List) models.List {
+func (repo *Repository) CreateList(ctx context.Context, list models.List) (models.List, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	list.ID = repo.listNextID
-	repo.Lists[repo.listNextID] = &list
-	repo.listNextID++
+	repo.Lists[list.ID] = &list
 
-	return list
+	return list, nil
 }
 
-func (repo *Repository) GetLists(ctx context.Context) []models.List {
+func (repo *Repository) GetLists(ctx context.Context) ([]models.List, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -26,10 +24,10 @@ func (repo *Repository) GetLists(ctx context.Context) []models.List {
 		lists = append(lists, *list)
 	}
 
-	return sortListsByOwnerID(lists)
+	return lists, nil
 }
 
-func (repo *Repository) GetListsByUserID(ctx context.Context, userID int) []models.List {
+func (repo *Repository) GetListsByUserID(ctx context.Context, userID models.UserID) ([]models.List, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -40,10 +38,10 @@ func (repo *Repository) GetListsByUserID(ctx context.Context, userID int) []mode
 		}
 	}
 
-	return sortListsByID(lists)
+	return lists, nil
 }
 
-func (repo *Repository) GetList(ctx context.Context, listID int) (models.List, error) {
+func (repo *Repository) GetList(ctx context.Context, listID models.ListID) (models.List, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -55,17 +53,18 @@ func (repo *Repository) GetList(ctx context.Context, listID int) (models.List, e
 	return *list, nil
 }
 
-func (repo *Repository) EditList(ctx context.Context, listID int, list models.List) error {
+func (repo *Repository) EditList(ctx context.Context, listID models.ListID, list models.List) (models.List, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
 	repo.Lists[listID] = &list
-	return nil
+	return list, nil
 }
 
-func (repo *Repository) DeleteList(ctx context.Context, listID int) {
+func (repo *Repository) DeleteList(ctx context.Context, listID models.ListID) error {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
 	delete(repo.Lists, listID)
+	return nil
 }

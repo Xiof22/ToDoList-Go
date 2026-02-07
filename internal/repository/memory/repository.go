@@ -6,18 +6,14 @@ import (
 )
 
 type Repository struct {
-	mu         sync.Mutex
-	Lists      map[int]*models.List
-	Users      map[int]*models.User
-	listNextID int
-	userNextID int
+	mu    sync.Mutex
+	Lists map[models.ListID]*models.List
+	Users map[models.UserID]*models.User
 }
 
 func New() *Repository {
 	return &Repository{
-		Lists:      make(map[int]*models.List),
-		Users:      make(map[int]*models.User),
-		listNextID: 1,
-		userNextID: 1,
+		Lists: make(map[models.ListID]*models.List),
+		Users: make(map[models.UserID]*models.User),
 	}
 }

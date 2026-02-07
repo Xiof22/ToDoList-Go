@@ -4,10 +4,10 @@ import (
 	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/go-chi/chi"
+	"github.com/google/uuid"
 	"github.com/gorilla/sessions"
 	"net/http"
 	"reflect"
-	"strconv"
 	"strings"
 )
 
@@ -27,19 +27,20 @@ func trimStrings(s any) {
 	}
 }
 
-func getURLIntParam(r *http.Request, key string) (int, error) {
-	paramStr := chi.URLParam(r, key)
-	id, err := strconv.Atoi(paramStr)
+func pathID[T ~[16]byte](r *http.Request, key string) (T, error) {
+	raw := chi.URLParam(r, key)
+	parsed, err := uuid.Parse(raw)
 	if err != nil {
-		return 0, errorsx.ErrParseURL(key)
+		var zero T
+		return zero, err
 	}
 
-	return id, nil
+	return T(parsed), nil
 }
 
 func (h *Handlers) createSession(r *http.Request, w http.ResponseWriter, info models.UserInfo) error {
 	session, _ := h.cs.Get(r, h.cfg.SessionName)
-	session.Values[sessionKeyUserID] = info.ID
+	session.Values[sessionKeyUserID] = info.ID.String()
 	session.Values[sessionKeyUserRole] = int(info.Role)
 
 	return session.Save(r, w)
@@ -48,9 +49,14 @@ func (h *Handlers) createSession(r *http.Request, w http.ResponseWriter, info mo
 func (h *Handlers) getUserInfoFromSession(r *http.Request) (models.UserInfo, error) {
 	session, _ := h.cs.Get(r, h.cfg.SessionName)
 
-	id, ok := session.Values[sessionKeyUserID].(int)
+	rawID, ok := session.Values[sessionKeyUserID].(string)
 	if !ok {
 		return models.UserInfo{}, errorsx.ErrInvalidSession
+	}
+
+	parsedID, err := uuid.Parse(rawID)
+	if err != nil {
+		return models.UserInfo{}, errorsx.ErrInvalidUserID
 	}
 
 	role, ok := session.Values[sessionKeyUserRole].(int)
@@ -59,7 +65,7 @@ func (h *Handlers) getUserInfoFromSession(r *http.Request) (models.UserInfo, err
 	}
 
 	info := models.UserInfo{
-		ID:   id,
+		ID:   models.UserID(parsedID),
 		Role: models.Role(role),
 	}
 

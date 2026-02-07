@@ -6,6 +6,10 @@ import (
 )
 
 var (
+	ErrUnmarshalDeadline       = errors.New("Deadline unmarshalling error")
+	ErrInvalidDeadlineFormat   = errors.New("Unexpected deadline format")
+	ErrWriteJSON               = errors.New("Failed to write JSON")
+	ErrMissingJSON             = errors.New("Missing JSON")
 	ErrInvalidSession          = errors.New("Invalid session")
 	ErrInvalidListID           = errors.New("Invalid list ID")
 	ErrInvalidTaskID           = errors.New("Invalid task ID")
@@ -28,12 +32,20 @@ var (
 	ErrInvalidToken            = errors.New("Invalid token")
 	ErrMissingToken            = errors.New("Missing token")
 	ErrInvalidAuthHeader       = errors.New("Invalid authorization header")
+	ErrQueryDB                 = errors.New("Failed to fetch data from DB")
+	ErrExecDB                  = errors.New("Failed to execute DB-operation")
 )
 
-func ErrParseURL(key string) error {
-	return fmt.Errorf("Failed to parse '%s' from URL", key)
-}
+/*
+	func ErrParseURL(key string) error {
+		return fmt.Errorf("Failed to parse '%s' from URL", key)
+	}
+*/
 
 func ErrParseContext(key string) error {
 	return fmt.Errorf("Failed to parse '%s' from context", key)
+}
+
+func ErrValidation(field, rule string) error {
+	return fmt.Errorf("Field '%s' doesn't match the rule '%s'", field, rule)
 }

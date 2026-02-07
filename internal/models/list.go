@@ -1,28 +1,54 @@
 package models
 
-type List struct {
-	ID          int
-	OwnerID     int
-	Title       string
-	Description string
-	Tasks       map[int]*Task
-	nextID      int
+import (
+	"database/sql/driver"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
+	"github.com/google/uuid"
+)
+
+type ListID uuid.UUID
+
+func (id ListID) String() string {
+	return uuid.UUID(id).String()
 }
 
-func NewList(ownerID int, title, description string) List {
+func (id ListID) Value() (driver.Value, error) {
+	return id.String(), nil
+}
+
+func (id *ListID) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	raw, ok := value.([]byte)
+	if !ok {
+		return errorsx.ErrInvalidListID
+	}
+
+	parsed, err := uuid.Parse(string(raw))
+	if err != nil {
+		return errorsx.ErrInvalidListID
+	}
+
+	*id = ListID(parsed)
+	return nil
+}
+
+type List struct {
+	ID          ListID
+	OwnerID     UserID
+	Title       string
+	Description string
+	Tasks       map[TaskID]*Task
+}
+
+func NewList(ownerID UserID, title, description string) List {
 	return List{
+		ID:          ListID(uuid.New()),
 		OwnerID:     ownerID,
 		Title:       title,
 		Description: description,
-		Tasks:       make(map[int]*Task),
-		nextID:      1,
+		Tasks:       make(map[TaskID]*Task),
 	}
-}
-
-func (l *List) AddTask(task Task) Task {
-	task.ID = l.nextID
-	l.Tasks[l.nextID] = &task
-	l.nextID++
-
-	return task
 }

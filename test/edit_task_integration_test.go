@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/cookiejar"
-	"strconv"
 	"testing"
 )
 
@@ -22,15 +22,13 @@ func TestEditTask(t *testing.T) {
 	client := ts.Client()
 	client.Jar = jar
 
-	createUser(t, client, ts.URL, newUserMap("GetTasks@gmail.com", "0000"))
+	createUser(t, client, ts.URL, newUserMap("EditTask@gmail.com", "0000"))
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
 	listID := listResp.List.ID
-	strListID := strconv.Itoa(listID)
 
 	taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
 	taskID := taskResp.Task.ID
-	strTaskID := strconv.Itoa(taskID)
 
 	editedTaskMap := map[string]any{
 		"title":       "Edited title",
@@ -47,108 +45,88 @@ func TestEditTask(t *testing.T) {
 	}{
 		{
 			name:       "List not found",
-			listID:     "999",
-			taskID:     strTaskID,
+			listID:     nilID,
+			taskID:     taskID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusNotFound,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"List not found"},
+				Errors: []string{errorsx.ErrListNotFound.Error()},
 			},
 		},
 		{
-			name:       "List ID less than 1",
-			listID:     "0",
-			taskID:     strTaskID,
+			name:       "Invalid list ID",
+			listID:     invalidID,
+			taskID:     taskID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Invalid list ID"},
-			},
-		},
-		{
-			name:       "Alphameric List ID",
-			listID:     "abc",
-			taskID:     strTaskID,
-			payload:    editedTaskMap,
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidListID.Error()},
 			},
 		},
 		{
 			name:       "Task not found",
-			listID:     strListID,
-			taskID:     "999",
+			listID:     listID,
+			taskID:     nilID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusNotFound,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Task not found"},
+				Errors: []string{errorsx.ErrTaskNotFound.Error()},
 			},
 		},
 		{
-			name:       "Task ID less than 1",
-			listID:     strListID,
-			taskID:     "0",
+			name:       "Invalid task ID",
+			listID:     listID,
+			taskID:     invalidID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Invalid task ID"},
-			},
-		},
-		{
-			name:       "Alphameric Task ID",
-			listID:     strListID,
-			taskID:     "abc",
-			payload:    editedTaskMap,
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'task_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidTaskID.Error()},
 			},
 		},
 		{
 			name:   "Missing title",
-			listID: strListID,
-			taskID: strTaskID,
+			listID: listID,
+			taskID: taskID,
 			payload: map[string]any{
 				"title": "     ",
 			},
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'Title' doesn't match the rule 'required'"},
+				Errors: []string{errorsx.ErrValidation("Title", "required").Error()},
 			},
 		},
 		{
 			name:   "Deadline before creation",
-			listID: strListID,
-			taskID: strTaskID,
+			listID: listID,
+			taskID: taskID,
 			payload: map[string]any{
 				"title":       sampleTaskMap["title"],
 				"description": sampleTaskMap["description"],
-				"deadline":    "2004-07-12 16:59:21",
+				"deadline":    pastDeadline,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Deadline must be after task creation time"},
+				Errors: []string{errorsx.ErrDeadlineBeforeCreation.Error()},
 			},
 		},
 		{
 			name:   "Unexpected deadline format",
-			listID: strListID,
-			taskID: strTaskID,
+			listID: listID,
+			taskID: taskID,
 			payload: map[string]any{
 				"title":       sampleTaskMap["title"],
 				"description": sampleTaskMap["description"],
-				"deadline":    "The 7-th of December 2030 year",
+				"deadline":    invalidFormatDeadline,
 			},
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Unexpected deadline format"},
+				Errors: []string{errorsx.ErrInvalidDeadlineFormat.Error()},
 			},
 		},
 		{
 			name:       "Success",
-			listID:     strListID,
-			taskID:     strTaskID,
+			listID:     listID,
+			taskID:     taskID,
 			payload:    editedTaskMap,
 			wantStatus: http.StatusOK,
 			wantError:  nil,
@@ -183,7 +161,7 @@ func TestEditTask(t *testing.T) {
 	}
 
 	t.Run("Missing body", func(t *testing.T) {
-		url := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, strListID, strTaskID)
+		url := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, listID, taskID)
 
 		req, err := http.NewRequest(http.MethodPatch, url, nil)
 		require.NoError(t, err)
@@ -195,7 +173,7 @@ func TestEditTask(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		wantError := dto.ErrorsResponse{
-			Errors: []string{"Empty JSON"},
+			Errors: []string{errorsx.ErrMissingJSON.Error()},
 		}
 
 		var gotError dto.ErrorsResponse

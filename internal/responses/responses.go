@@ -2,8 +2,8 @@ package responses
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/go-playground/validator/v10"
 	"net/http"
 )
@@ -23,7 +23,7 @@ func WriteJSON(w http.ResponseWriter, status int, data any) {
 	}
 
 	if err != nil {
-		http.Error(w, "JSON writing error", http.StatusInternalServerError)
+		http.Error(w, errorsx.ErrWriteJSON.Error(), http.StatusInternalServerError)
 	}
 }
 
@@ -35,7 +35,7 @@ func WriteError(w http.ResponseWriter, status int, err error) {
 
 func formatError(err error) []string {
 	if err.Error() == "EOF" {
-		return []string{"Empty JSON"}
+		return []string{errorsx.ErrMissingJSON.Error()}
 	}
 
 	ve, ok := err.(validator.ValidationErrors)
@@ -45,8 +45,7 @@ func formatError(err error) []string {
 
 	messages := make([]string, len(ve))
 	for i, e := range ve {
-		msg := fmt.Sprintf("Field '%s' doesn't match the rule '%s'", e.Field(), e.Tag())
-		messages[i] = msg
+		messages[i] = errorsx.ErrValidation(e.Field(), e.Tag()).Error()
 	}
 
 	return messages

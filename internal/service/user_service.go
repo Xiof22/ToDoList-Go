@@ -9,11 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (svc *Service) GetUserByID(ctx context.Context, userID int) (models.User, error) {
-	if userID <= 0 {
-		return models.User{}, errorsx.ErrInvalidUserID
-	}
-
+func (svc *Service) GetUserByID(ctx context.Context, userID models.UserID) (models.User, error) {
 	return svc.repo.GetUserByID(ctx, userID)
 }
 
@@ -29,9 +25,7 @@ func (svc *Service) Register(ctx context.Context, req dto.AuthRequest) (models.U
 		return models.User{}, err
 	}
 
-	user = svc.repo.CreateUser(ctx, user)
-
-	return user, nil
+	return svc.repo.CreateUser(ctx, user)
 }
 
 func (svc *Service) Login(ctx context.Context, req dto.AuthRequest) (models.User, error) {
