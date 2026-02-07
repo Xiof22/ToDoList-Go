@@ -6,7 +6,7 @@ import (
 )
 
 type Task struct {
-	ID          int        `json:"id"`
+	ID          string     `json:"id"`
 	Title       string     `json:"title"`
 	Description string     `json:"description,omitempty"`
 	IsCompleted bool       `json:"completed"`
@@ -20,7 +20,7 @@ func ToTaskDTO(t models.Task) Task {
 	}
 
 	return Task{
-		ID:          t.ID,
+		ID:          t.ID.String(),
 		Title:       t.Title,
 		Description: t.Description,
 		IsCompleted: t.IsCompleted,

@@ -56,6 +56,5 @@ func TestGetLists(t *testing.T) {
 
 		assert.Equal(t, gotResponse.Count, wantResponse.Count)
 		assert.Equal(t, gotResponse.Lists[0].Title, wantResponse.Lists[0].Title)
-		assert.Greater(t, gotResponse.Lists[0].ID, 0)
 	})
 }

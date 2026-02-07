@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/cookiejar"
-	"strconv"
 	"testing"
 )
 
@@ -25,7 +25,6 @@ func TestGetTasks(t *testing.T) {
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
 	listID := listResp.List.ID
-	strListID := strconv.Itoa(listID)
 
 	tests := []struct {
 		name         string
@@ -36,34 +35,25 @@ func TestGetTasks(t *testing.T) {
 	}{
 		{
 			name:         "List not found",
-			listID:       "999",
+			listID:       nilID,
 			wantStatus:   http.StatusNotFound,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"List not found"},
+				Errors: []string{errorsx.ErrListNotFound.Error()},
 			},
 		},
 		{
-			name:         "List ID less than 1",
-			listID:       "0",
+			name:         "Invalid list ID",
+			listID:       invalidID,
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Invalid list ID"},
-			},
-		},
-		{
-			name:         "Alphameric list ID",
-			listID:       "abc",
-			wantStatus:   http.StatusBadRequest,
-			wantResponse: nil,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidListID.Error()},
 			},
 		},
 		{
 			name:       "No tasks",
-			listID:     strListID,
+			listID:     listID,
 			wantStatus: http.StatusOK,
 			wantResponse: &dto.TasksResponse{
 				Count: 0,
@@ -101,7 +91,7 @@ func TestGetTasks(t *testing.T) {
 	t.Run("Have task", func(t *testing.T) {
 		createTask(t, client, ts.URL, listID, sampleTaskMap)
 
-		url := fmt.Sprintf("%s/lists/%s/tasks", ts.URL, strListID)
+		url := fmt.Sprintf("%s/lists/%s/tasks", ts.URL, listID)
 
 		resp, err := client.Get(url)
 		require.NoError(t, err)
@@ -120,6 +110,5 @@ func TestGetTasks(t *testing.T) {
 		assert.Equal(t, gotResponse.Count, wantResponse.Count)
 		assert.Equal(t, gotResponse.Tasks[0].Title, wantResponse.Tasks[0].Title)
 		assert.Equal(t, gotResponse.Tasks[0].Deadline, wantResponse.Tasks[0].Deadline)
-		assert.Greater(t, gotResponse.Tasks[0].ID, 0)
 	})
 }

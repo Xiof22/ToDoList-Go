@@ -1,6 +1,7 @@
 package test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
@@ -13,54 +14,44 @@ import (
 	"testing"
 )
 
-func TestDeleteList(t *testing.T) {
+func TestDeleteUser(t *testing.T) {
 	ts := newTestServer(t)
-	defer ts.Close()
+
+	userData := map[string]any{
+		"email":    "DeleteUser@gmail.com",
+		"password": "0000",
+	}
 
 	jar, _ := cookiejar.New(nil)
 	client := ts.Client()
 	client.Jar = jar
 
-	createUser(t, client, ts.URL, newUserMap("DeleteList@gmail.com", "0000"))
+	createUser(t, client, ts.URL, userData)
 
-	listResp := createList(t, client, ts.URL, sampleListMap)
-	listID := listResp.List.ID
+	url := fmt.Sprintf("%s/auth", ts.URL)
 
 	tests := []struct {
 		name       string
-		listID     string
 		wantStatus int
 		wantError  *dto.ErrorsResponse
 	}{
 		{
-			name:       "List not found",
-			listID:     nilID,
-			wantStatus: http.StatusNotFound,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{errorsx.ErrListNotFound.Error()},
-			},
-		},
-		{
-			name:       "Invalid list ID",
-			listID:     invalidID,
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{errorsx.ErrInvalidListID.Error()},
-			},
-		},
-		{
 			name:       "Success",
-			listID:     listID,
 			wantStatus: http.StatusNoContent,
 			wantError:  nil,
+		},
+		{
+			name:       "Unauthorized",
+			wantStatus: http.StatusUnauthorized,
+			wantError: &dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrUnauthorized.Error()},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			url := fmt.Sprintf("%s/lists/%s", ts.URL, tt.listID)
-
-			req, err := http.NewRequest(http.MethodDelete, url, nil)
+			req, err := http.NewRequest(http.MethodDelete, url+"/delete", nil)
 			require.NoError(t, err)
 
 			resp, err := client.Do(req)
@@ -74,14 +65,25 @@ func TestDeleteList(t *testing.T) {
 				require.NoError(t, json.NewDecoder(resp.Body).Decode(gotError))
 
 				assert.Equal(t, tt.wantError, gotError)
+
 				return
 			}
 
-			resp2, err := client.Get(url)
+			body, err := json.Marshal(userData)
+			require.NoError(t, err)
+
+			resp2, err := client.Post(url+"/login", "application/json", bytes.NewReader(body))
 			require.NoError(t, err)
 			defer resp2.Body.Close()
 
-			assert.Equal(t, http.StatusNotFound, resp2.StatusCode)
+			assert.Equal(t, http.StatusUnauthorized, resp2.StatusCode)
+
+			var gotError dto.ErrorsResponse
+			require.NoError(t, json.NewDecoder(resp2.Body).Decode(&gotError))
+
+			assert.Equal(t, dto.ErrorsResponse{
+				Errors: []string{errorsx.ErrInvalidCredentials.Error()},
+			}, gotError)
 		})
 	}
 }

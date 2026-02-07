@@ -9,10 +9,10 @@ import (
 
 func (svc *Service) CreateList(ctx context.Context, info models.UserInfo, req dto.CreateListRequest) (models.List, error) {
 	list := models.NewList(info.ID, req.Title, req.Description)
-	return svc.repo.CreateList(ctx, list), nil
+	return svc.repo.CreateList(ctx, list)
 }
 
-func (svc *Service) GetLists(ctx context.Context, info models.UserInfo) []models.List {
+func (svc *Service) GetLists(ctx context.Context, info models.UserInfo) ([]models.List, error) {
 	if info.Role == models.Admin {
 		return svc.repo.GetLists(ctx)
 	}
@@ -20,11 +20,7 @@ func (svc *Service) GetLists(ctx context.Context, info models.UserInfo) []models
 	return svc.repo.GetListsByUserID(ctx, info.ID)
 }
 
-func (svc *Service) GetList(ctx context.Context, info models.UserInfo, listID int) (models.List, error) {
-	if listID <= 0 {
-		return models.List{}, errorsx.ErrInvalidListID
-	}
-
+func (svc *Service) GetList(ctx context.Context, info models.UserInfo, listID models.ListID) (models.List, error) {
 	list, err := svc.repo.GetList(ctx, listID)
 	if err != nil {
 		return list, err
@@ -37,11 +33,7 @@ func (svc *Service) GetList(ctx context.Context, info models.UserInfo, listID in
 	return list, nil
 }
 
-func (svc *Service) EditList(ctx context.Context, info models.UserInfo, listID int, req dto.EditListRequest) (models.List, error) {
-	if listID <= 0 {
-		return models.List{}, errorsx.ErrInvalidListID
-	}
-
+func (svc *Service) EditList(ctx context.Context, info models.UserInfo, listID models.ListID, req dto.EditListRequest) (models.List, error) {
 	list, err := svc.repo.GetList(ctx, listID)
 	if err != nil {
 		return list, err
@@ -54,15 +46,10 @@ func (svc *Service) EditList(ctx context.Context, info models.UserInfo, listID i
 	list.Title = req.Title
 	list.Description = req.Description
 
-	err = svc.repo.EditList(ctx, listID, list)
-	return list, err
+	return svc.repo.EditList(ctx, listID, list)
 }
 
-func (svc *Service) DeleteList(ctx context.Context, info models.UserInfo, listID int) error {
-	if listID <= 0 {
-		return errorsx.ErrInvalidListID
-	}
-
+func (svc *Service) DeleteList(ctx context.Context, info models.UserInfo, listID models.ListID) error {
 	if list, err := svc.repo.GetList(ctx, listID); err != nil {
 		return err
 	} else if list.OwnerID != info.ID && info.Role != models.Admin {

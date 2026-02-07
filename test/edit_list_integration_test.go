@@ -5,12 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/cookiejar"
-	"strconv"
 	"testing"
 )
 
@@ -25,7 +25,7 @@ func TestEditList(t *testing.T) {
 	createUser(t, client, ts.URL, newUserMap("EditList@gmail.com", "0000"))
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
-	strListID := strconv.Itoa(listResp.List.ID)
+	listID := listResp.List.ID
 
 	editedListMap := map[string]any{
 		"title":       "Edited title",
@@ -41,45 +41,36 @@ func TestEditList(t *testing.T) {
 	}{
 		{
 			name:       "List not found",
-			listID:     "999",
+			listID:     nilID,
 			payload:    editedListMap,
 			wantStatus: http.StatusNotFound,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"List not found"},
+				Errors: []string{errorsx.ErrListNotFound.Error()},
 			},
 		},
 		{
-			name:       "List ID less than 1",
-			listID:     "0",
+			name:       "Invalid list ID",
+			listID:     invalidID,
 			payload:    editedListMap,
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Invalid list ID"},
-			},
-		},
-		{
-			name:       "Alphameric List ID",
-			listID:     "abc",
-			payload:    editedListMap,
-			wantStatus: http.StatusBadRequest,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidListID.Error()},
 			},
 		},
 		{
 			name:   "Missing title",
-			listID: strListID,
+			listID: listID,
 			payload: map[string]any{
 				"title": "     ",
 			},
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'Title' doesn't match the rule 'required'"},
+				Errors: []string{errorsx.ErrValidation("Title", "required").Error()},
 			},
 		},
 		{
 			name:       "Success",
-			listID:     strListID,
+			listID:     listID,
 			payload:    editedListMap,
 			wantStatus: http.StatusOK,
 			wantError:  nil,
@@ -112,7 +103,7 @@ func TestEditList(t *testing.T) {
 	}
 
 	t.Run("Missing body", func(t *testing.T) {
-		url := fmt.Sprintf("%s/lists/%s", ts.URL, strListID)
+		url := fmt.Sprintf("%s/lists/%s", ts.URL, listID)
 
 		req, err := http.NewRequest(http.MethodPatch, url, nil)
 		require.NoError(t, err)
@@ -124,7 +115,7 @@ func TestEditList(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		wantError := dto.ErrorsResponse{
-			Errors: []string{"Empty JSON"},
+			Errors: []string{errorsx.ErrMissingJSON.Error()},
 		}
 
 		var gotError dto.ErrorsResponse

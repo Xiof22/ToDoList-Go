@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
 	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/responses"
@@ -60,6 +61,7 @@ func (h *Handlers) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.createSession(r, w, user.Info()); err != nil {
+		fmt.Println(err)
 		responses.WriteError(w, http.StatusInternalServerError, errorsx.ErrSaveSession)
 		return
 	}

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,7 +40,7 @@ func TestCreateList(t *testing.T) {
 			},
 			wantStatus: http.StatusBadRequest,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Field 'Title' doesn't match the rule 'required'"},
+				Errors: []string{errorsx.ErrValidation("Title", "required").Error()},
 			},
 		},
 		{
@@ -81,7 +82,7 @@ func TestCreateList(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 		wantError := dto.ErrorsResponse{
-			Errors: []string{"Empty JSON"},
+			Errors: []string{errorsx.ErrMissingJSON.Error()},
 		}
 
 		var gotError dto.ErrorsResponse

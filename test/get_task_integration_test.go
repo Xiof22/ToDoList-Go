@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/cookiejar"
-	"strconv"
 	"testing"
 )
 
@@ -25,11 +25,9 @@ func TestGetTask(t *testing.T) {
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
 	listID := listResp.List.ID
-	strListID := strconv.Itoa(listID)
 
 	taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
 	taskID := taskResp.Task.ID
-	strTaskID := strconv.Itoa(taskID)
 
 	tests := []struct {
 		name         string
@@ -41,69 +39,49 @@ func TestGetTask(t *testing.T) {
 	}{
 		{
 			name:         "List not found",
-			listID:       "999",
-			taskID:       strTaskID,
+			listID:       nilID,
+			taskID:       taskID,
 			wantStatus:   http.StatusNotFound,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"List not found"},
+				Errors: []string{errorsx.ErrListNotFound.Error()},
 			},
 		},
 
 		{
-			name:         "List ID less than 1",
-			listID:       "0",
-			taskID:       strTaskID,
+			name:         "Invalid list ID",
+			listID:       invalidID,
+			taskID:       taskID,
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Invalid list ID"},
-			},
-		},
-		{
-			name:         "Alphameric List ID",
-			listID:       "abc",
-			taskID:       strTaskID,
-			wantStatus:   http.StatusBadRequest,
-			wantResponse: nil,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidListID.Error()},
 			},
 		},
 		{
 			name:         "Task not found",
-			listID:       strListID,
-			taskID:       "999",
+			listID:       listID,
+			taskID:       nilID,
 			wantStatus:   http.StatusNotFound,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Task not found"},
+				Errors: []string{errorsx.ErrTaskNotFound.Error()},
 			},
 		},
 		{
-			name:         "Task ID less than 1",
-			listID:       strListID,
-			taskID:       "0",
+			name:         "Invalid task ID",
+			listID:       listID,
+			taskID:       invalidID,
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Invalid task ID"},
-			},
-		},
-		{
-			name:         "Alphameric Task ID",
-			listID:       strListID,
-			taskID:       "abc",
-			wantStatus:   http.StatusBadRequest,
-			wantResponse: nil,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'task_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidTaskID.Error()},
 			},
 		},
 		{
 			name:       "Success",
-			listID:     strListID,
-			taskID:     strTaskID,
+			listID:     listID,
+			taskID:     taskID,
 			wantStatus: http.StatusOK,
 			wantResponse: &dto.TaskResponse{
 				Task: sampleTask,
@@ -135,7 +113,6 @@ func TestGetTask(t *testing.T) {
 
 			assert.Equal(t, tt.wantResponse.Task.Title, gotResponse.Task.Title)
 			assert.Equal(t, tt.wantResponse.Task.Description, gotResponse.Task.Description)
-			assert.Greater(t, gotResponse.Task.ID, 0)
 		})
 	}
 }

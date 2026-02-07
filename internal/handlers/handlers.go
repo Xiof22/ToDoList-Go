@@ -9,6 +9,9 @@ import (
 const (
 	sessionKeyUserID   = "user_id"
 	sessionKeyUserRole = "user_role"
+
+	pathKeyListID = "list_id"
+	pathKeyTaskID = "task_id"
 )
 
 type Handlers struct {

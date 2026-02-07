@@ -1,22 +1,22 @@
 package test
 
 import (
-	"time"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/config"
-	"github.com/gorilla/sessions"
 	"github.com/Xiof22/ToDoList/internal/dto"
 	"github.com/Xiof22/ToDoList/internal/handlers"
 	"github.com/Xiof22/ToDoList/internal/middleware"
-	"github.com/Xiof22/ToDoList/internal/repository/memory"
+	"github.com/Xiof22/ToDoList/internal/repository/mysql"
 	"github.com/Xiof22/ToDoList/internal/router"
 	"github.com/Xiof22/ToDoList/internal/service"
+	"github.com/gorilla/sessions"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func newTestServer(t *testing.T) *httptest.Server {
@@ -26,17 +26,18 @@ func newTestServer(t *testing.T) *httptest.Server {
 	require.NoError(t, err)
 
 	loc, err := time.LoadLocation(cfg.TimezoneLocation)
-        if err != nil {
-                fmt.Printf("Failed to load location %s: %v\n", cfg.TimezoneLocation, err)
-                time.Local = time.UTC
-        } else {
-                time.Local = loc
-        }
+	if err != nil {
+		fmt.Printf("Failed to load location %s: %v\n", cfg.TimezoneLocation, err)
+		time.Local = time.UTC
+	} else {
+		time.Local = loc
+	}
 
 	cs := sessions.NewCookieStore([]byte(cfg.CookieStoreKey))
 	cs.Options.Secure = false
-	m := memory.New()
-	svc := service.New(m)
+	repo, err := mysql.New(cfg.DBDSN)
+	require.NoError(t, err)
+	svc := service.New(repo)
 	h := handlers.New(svc, cs, cfg)
 	mw := middleware.New(cs, cfg)
 	r := router.New(h, mw)
@@ -80,13 +81,13 @@ func createList(t *testing.T, client *http.Client, baseURL string, listMap map[s
 	return listResp
 }
 
-func createTask(t *testing.T, client *http.Client, baseURL string, listID int, taskMap map[string]any) dto.TaskResponse {
+func createTask(t *testing.T, client *http.Client, baseURL string, listID string, taskMap map[string]any) dto.TaskResponse {
 	t.Helper()
 
 	body, err := json.Marshal(taskMap)
 	require.NoError(t, err)
 
-	url := fmt.Sprintf("%s/lists/%d/tasks", baseURL, listID)
+	url := fmt.Sprintf("%s/lists/%s/tasks", baseURL, listID)
 
 	resp, err := client.Post(url, "application/json", bytes.NewReader(body))
 	require.NoError(t, err)
@@ -98,4 +99,13 @@ func createTask(t *testing.T, client *http.Client, baseURL string, listID int, t
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&taskResp))
 
 	return taskResp
+}
+
+func errStrings(errs ...error) []string {
+	s := make([]string, len(errs))
+	for i, err := range errs {
+		s[i] = err.Error()
+	}
+
+	return s
 }

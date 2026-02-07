@@ -19,16 +19,11 @@ func MapError(err error) int {
 		errors.Is(err, errorsx.ErrListNotFound):
 		return http.StatusNotFound
 
-	case errors.Is(err, errorsx.ErrHashPassword),
-		errors.Is(err, errorsx.ErrSignToken):
+	case errors.Is(err, errorsx.ErrHashPassword):
 		return http.StatusInternalServerError
 
 	case errors.Is(err, errorsx.ErrInvalidCredentials),
-		errors.Is(err, errorsx.ErrUserNotFound),
-		errors.Is(err, errorsx.ErrUnexpectedSigningMethod),
-		errors.Is(err, errorsx.ErrInvalidToken),
-		errors.Is(err, errorsx.ErrMissingToken),
-		errors.Is(err, errorsx.ErrInvalidAuthHeader):
+		errors.Is(err, errorsx.ErrUserNotFound):
 		return http.StatusUnauthorized
 
 	case errors.Is(err, errorsx.ErrEmailRegistered):

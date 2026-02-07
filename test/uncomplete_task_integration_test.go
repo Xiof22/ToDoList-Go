@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/cookiejar"
-	"strconv"
 	"testing"
 )
 
@@ -25,11 +25,9 @@ func TestUncompleteTask(t *testing.T) {
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
 	listID := listResp.List.ID
-	strListID := strconv.Itoa(listID)
 
 	taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
 	taskID := taskResp.Task.ID
-	strTaskID := strconv.Itoa(taskID)
 
 	failTests := []struct {
 		name       string
@@ -40,66 +38,48 @@ func TestUncompleteTask(t *testing.T) {
 	}{
 		{
 			name:       "List not found",
-			listID:     "999",
-			taskID:     strTaskID,
+			listID:     nilID,
+			taskID:     taskID,
 			wantStatus: http.StatusNotFound,
 			wantError: dto.ErrorsResponse{
-				Errors: []string{"List not found"},
+				Errors: []string{errorsx.ErrListNotFound.Error()},
 			},
 		},
 
 		{
-			name:       "List ID less than 1",
-			listID:     "0",
-			taskID:     strTaskID,
+			name:       "Invalid list ID",
+			listID:     invalidID,
+			taskID:     taskID,
 			wantStatus: http.StatusBadRequest,
 			wantError: dto.ErrorsResponse{
-				Errors: []string{"Invalid list ID"},
-			},
-		},
-		{
-			name:       "Alphameric List ID",
-			listID:     "abc",
-			taskID:     strTaskID,
-			wantStatus: http.StatusBadRequest,
-			wantError: dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidListID.Error()},
 			},
 		},
 		{
 			name:       "Task not found",
-			listID:     strListID,
-			taskID:     "999",
+			listID:     listID,
+			taskID:     nilID,
 			wantStatus: http.StatusNotFound,
 			wantError: dto.ErrorsResponse{
-				Errors: []string{"Task not found"},
+				Errors: []string{errorsx.ErrTaskNotFound.Error()},
 			},
 		},
 		{
-			name:       "Task ID less than 1",
-			listID:     strListID,
-			taskID:     "0",
+			name:       "Invalid task ID",
+			listID:     listID,
+			taskID:     invalidID,
 			wantStatus: http.StatusBadRequest,
 			wantError: dto.ErrorsResponse{
-				Errors: []string{"Invalid task ID"},
-			},
-		},
-		{
-			name:       "Alphameric Task ID",
-			listID:     strListID,
-			taskID:     "abc",
-			wantStatus: http.StatusBadRequest,
-			wantError: dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'task_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidTaskID.Error()},
 			},
 		},
 		{
 			name:       "Task is already uncompleted",
-			listID:     strListID,
-			taskID:     strTaskID,
+			listID:     listID,
+			taskID:     taskID,
 			wantStatus: http.StatusBadRequest,
 			wantError: dto.ErrorsResponse{
-				Errors: []string{"Task is already uncompleted"},
+				Errors: []string{errorsx.ErrAlreadyUncompleted.Error()},
 			},
 		},
 	}
@@ -127,9 +107,8 @@ func TestUncompleteTask(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		taskResp := createTask(t, client, ts.URL, listID, sampleTaskMap)
 		taskID := taskResp.Task.ID
-		strTaskID := strconv.Itoa(taskID)
 
-		taskURL := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, strListID, strTaskID)
+		taskURL := fmt.Sprintf("%s/lists/%s/tasks/%s", ts.URL, listID, taskID)
 
 		req, err := http.NewRequest(http.MethodPatch, taskURL+"/complete", nil)
 		require.NoError(t, err)

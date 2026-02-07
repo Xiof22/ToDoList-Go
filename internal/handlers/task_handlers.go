@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
+	"github.com/Xiof22/ToDoList/internal/models"
 	"github.com/Xiof22/ToDoList/internal/responses"
 	"github.com/Xiof22/ToDoList/internal/validator"
 	"net/http"
@@ -15,9 +17,9 @@ func (h *Handlers) CreateTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
@@ -53,9 +55,9 @@ func (h *Handlers) GetTasksHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
@@ -80,15 +82,15 @@ func (h *Handlers) GetTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
-	taskID, err := getURLIntParam(r, "task_id")
+	taskID, err := pathID[models.TaskID](r, pathKeyTaskID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
 		return
 	}
 
@@ -112,15 +114,15 @@ func (h *Handlers) EditTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
-	taskID, err := getURLIntParam(r, "task_id")
+	taskID, err := pathID[models.TaskID](r, pathKeyTaskID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
 		return
 	}
 
@@ -156,15 +158,15 @@ func (h *Handlers) CompleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
-	taskID, err := getURLIntParam(r, "task_id")
+	taskID, err := pathID[models.TaskID](r, pathKeyTaskID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
 		return
 	}
 
@@ -183,15 +185,15 @@ func (h *Handlers) UncompleteTaskHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
-	taskID, err := getURLIntParam(r, "task_id")
+	taskID, err := pathID[models.TaskID](r, pathKeyTaskID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
 		return
 	}
 
@@ -210,15 +212,15 @@ func (h *Handlers) DeleteTaskHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	listID, err := getURLIntParam(r, "list_id")
+	listID, err := pathID[models.ListID](r, pathKeyListID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidListID)
 		return
 	}
 
-	taskID, err := getURLIntParam(r, "task_id")
+	taskID, err := pathID[models.TaskID](r, pathKeyTaskID)
 	if err != nil {
-		responses.WriteError(w, http.StatusBadRequest, err)
+		responses.WriteError(w, http.StatusBadRequest, errorsx.ErrInvalidTaskID)
 		return
 	}
 

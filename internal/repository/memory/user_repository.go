@@ -6,19 +6,16 @@ import (
 	"github.com/Xiof22/ToDoList/internal/models"
 )
 
-func (repo *Repository) CreateUser(ctx context.Context, user models.User) models.User {
+func (repo *Repository) CreateUser(ctx context.Context, user models.User) (models.User, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
-	user.ID = repo.userNextID
-
 	repo.Users[user.ID] = &user
-	repo.userNextID++
 
-	return user
+	return user, nil
 }
 
-func (repo *Repository) GetUserByID(ctx context.Context, userID int) (models.User, error) {
+func (repo *Repository) GetUserByID(ctx context.Context, userID models.UserID) (models.User, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -43,8 +40,11 @@ func (repo *Repository) GetUserByEmail(ctx context.Context, email string) (model
 	return models.User{}, errorsx.ErrUserNotFound
 }
 
-func (repo *Repository) DeleteUser(ctx context.Context, userID int) error {
-	lists := repo.GetListsByUserID(ctx, userID)
+func (repo *Repository) DeleteUser(ctx context.Context, userID models.UserID) error {
+	lists, err := repo.GetListsByUserID(ctx, userID)
+	if err != nil {
+		return err
+	}
 
 	repo.mu.Lock()
 	defer repo.mu.Unlock()

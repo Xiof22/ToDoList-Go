@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/Xiof22/ToDoList/internal/dto"
+	"github.com/Xiof22/ToDoList/internal/errorsx"
 	_ "github.com/Xiof22/ToDoList/internal/validator"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"net/http/cookiejar"
 	"net/http"
-	"strconv"
+	"net/http/cookiejar"
 	"testing"
 )
 
@@ -24,7 +24,7 @@ func TestGetList(t *testing.T) {
 	createUser(t, client, ts.URL, newUserMap("GetList@gmail.com", "0000"))
 
 	listResp := createList(t, client, ts.URL, sampleListMap)
-	strListID := strconv.Itoa(listResp.List.ID)
+	listID := listResp.List.ID
 
 	tests := []struct {
 		name         string
@@ -35,34 +35,25 @@ func TestGetList(t *testing.T) {
 	}{
 		{
 			name:         "List not found",
-			listID:       "999",
+			listID:       nilID,
 			wantStatus:   http.StatusNotFound,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"List not found"},
+				Errors: []string{errorsx.ErrListNotFound.Error()},
 			},
 		},
 		{
-			name:         "List ID less than 1",
-			listID:       "0",
+			name:         "Invalid list ID",
+			listID:       invalidID,
 			wantStatus:   http.StatusBadRequest,
 			wantResponse: nil,
 			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Invalid list ID"},
-			},
-		},
-		{
-			name:         "Alphameric List ID",
-			listID:       "abc",
-			wantStatus:   http.StatusBadRequest,
-			wantResponse: nil,
-			wantError: &dto.ErrorsResponse{
-				Errors: []string{"Failed to parse 'list_id' from URL"},
+				Errors: []string{errorsx.ErrInvalidListID.Error()},
 			},
 		},
 		{
 			name:       "Success",
-			listID:     strListID,
+			listID:     listID,
 			wantStatus: http.StatusOK,
 			wantResponse: &dto.ListResponse{
 				List: sampleList,
@@ -94,7 +85,6 @@ func TestGetList(t *testing.T) {
 
 			assert.Equal(t, tt.wantResponse.List.Title, gotResponse.List.Title)
 			assert.Equal(t, tt.wantResponse.List.Description, gotResponse.List.Description)
-			assert.Greater(t, gotResponse.List.ID, 0)
 		})
 	}
 }

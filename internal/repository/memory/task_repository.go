@@ -4,18 +4,23 @@ import (
 	"context"
 	"github.com/Xiof22/ToDoList/internal/errorsx"
 	"github.com/Xiof22/ToDoList/internal/models"
+	"time"
 )
 
-func (repo *Repository) CreateTask(ctx context.Context, listID int, task models.Task) models.Task {
+func (repo *Repository) CreateTask(ctx context.Context, listID models.ListID, task models.Task) (models.Task, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
 	list := repo.Lists[listID]
 
-	return list.AddTask(task)
+	task.CreatedAt = time.Now()
+
+	list.Tasks[task.ID] = &task
+
+	return task, nil
 }
 
-func (repo *Repository) GetTasks(ctx context.Context, listID int) []models.Task {
+func (repo *Repository) GetTasks(ctx context.Context, listID models.ListID) ([]models.Task, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -25,10 +30,10 @@ func (repo *Repository) GetTasks(ctx context.Context, listID int) []models.Task 
 		tasks = append(tasks, *task)
 	}
 
-	return sortTasksByID(tasks)
+	return sortTasksByCreationTime(tasks), nil
 }
 
-func (repo *Repository) GetTask(ctx context.Context, listID, taskID int) (models.Task, error) {
+func (repo *Repository) GetTask(ctx context.Context, listID models.ListID, taskID models.TaskID) (models.Task, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
@@ -41,40 +46,24 @@ func (repo *Repository) GetTask(ctx context.Context, listID, taskID int) (models
 	return *task, nil
 }
 
-func (repo *Repository) EditTask(ctx context.Context, listID, taskID int, task models.Task) error {
+func (repo *Repository) EditTask(ctx context.Context, listID models.ListID, taskID models.TaskID, task models.Task) (models.Task, error) {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
 	list := repo.Lists[listID]
+	now := time.Now()
+	task.UpdatedAt = &now
 	list.Tasks[taskID] = &task
 
-	return nil
+	return task, nil
 }
 
-/*
-	func (repo *Repository) CompleteTask(ctx context.Context, listID, taskID int) {
-		repo.mu.Lock()
-		defer repo.mu.Unlock()
-
-		list := repo.Lists[listID]
-		task := list.Tasks[taskID]
-		task.IsCompleted = true
-	}
-
-	func (repo *Repository) UncompleteTask(ctx context.Context, listID, taskID int) {
-		repo.mu.Lock()
-		defer repo.mu.Unlock()
-
-		list := repo.Lists[listID]
-		task := list.Tasks[taskID]
-		task.IsCompleted = false
-	}
-*/
-
-func (repo *Repository) DeleteTask(ctx context.Context, listID, taskID int) {
+func (repo *Repository) DeleteTask(ctx context.Context, listID models.ListID, taskID models.TaskID) error {
 	repo.mu.Lock()
 	defer repo.mu.Unlock()
 
 	list := repo.Lists[listID]
 	delete(list.Tasks, taskID)
+
+	return nil
 }
