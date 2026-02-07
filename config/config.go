@@ -19,6 +19,7 @@ type Config struct {
 	SessionName      string        `env:"SESSION_NAME,required"`
 	AdminEmail       string        `env:"ADMIN_EMAIL,required" validate:"email"`
 	AdminPassword    string        `env:"ADMIN_PASSWORD,required" validate:"min=4,max=8"`
+	DBDSN            string        `env:"DB_DSN" envDefault:"root:@tcp(127.0.0.1:3306)/todo?parseTime=true"`
 }
 
 func LoadConfig() (*Config, error) {

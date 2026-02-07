@@ -8,7 +8,7 @@ import (
 	"github.com/Xiof22/ToDoList/internal/dto"
 	"github.com/Xiof22/ToDoList/internal/handlers"
 	"github.com/Xiof22/ToDoList/internal/middleware"
-	"github.com/Xiof22/ToDoList/internal/repository/memory"
+	"github.com/Xiof22/ToDoList/internal/repository/mysql"
 	"github.com/Xiof22/ToDoList/internal/router"
 	"github.com/Xiof22/ToDoList/internal/service"
 	"github.com/gorilla/sessions"
@@ -35,8 +35,8 @@ func newTestServer(t *testing.T) *httptest.Server {
 
 	cs := sessions.NewCookieStore([]byte(cfg.CookieStoreKey))
 	cs.Options.Secure = false
-
-	repo := memory.New()
+	repo, err := mysql.New(cfg.DBDSN)
+	require.NoError(t, err)
 	svc := service.New(repo)
 	h := handlers.New(svc, cs, cfg)
 	mw := middleware.New(cs, cfg)
