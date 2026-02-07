@@ -8,6 +8,7 @@ import (
 )
 
 type Config struct {
+	DBDSN            string `env:"DB_DSN" envDefault:"root:@tcp(127.0.0.1:3306)/todo?parseTime=true"`
 	Port             int    `env:"APP_PORT" envDefault:"8080"`
 	TimezoneLocation string `env:"TIMEZONE_LOCATION" envDefault:"Asia/Ashgabat"`
 	CookieStoreKey   string `env:"COOKIE_STORE_KEY,required" validate:"min=8"`
