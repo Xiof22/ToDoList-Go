@@ -8,7 +8,7 @@ import (
 type Repository struct {
 	mu    sync.Mutex
 	Lists map[models.ListID]*models.List
-	Users      map[models.UserID]*models.User
+	Users map[models.UserID]*models.User
 }
 
 func New() *Repository {

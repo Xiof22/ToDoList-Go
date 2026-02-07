@@ -1,15 +1,39 @@
 package models
 
 import (
+	"database/sql/driver"
 	"github.com/Xiof22/ToDoList/internal/errorsx"
-	"golang.org/x/crypto/bcrypt"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserID uuid.UUID
 
 func (id UserID) String() string {
 	return uuid.UUID(id).String()
+}
+
+func (id UserID) Value() (driver.Value, error) {
+	return id.String(), nil
+}
+
+func (id *UserID) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	raw, ok := value.([]byte)
+	if !ok {
+		return errorsx.ErrInvalidUserID
+	}
+
+	parsed, err := uuid.Parse(string(raw))
+	if err != nil {
+		return errorsx.ErrInvalidUserID
+	}
+
+	*id = UserID(parsed)
+	return nil
 }
 
 type Role int
@@ -33,6 +57,7 @@ func NewUser(email string, password string) (User, error) {
 	}
 
 	return User{
+		ID:           UserID(uuid.New()),
 		Email:        email,
 		PasswordHash: passwordHash,
 		Role:         Guest,

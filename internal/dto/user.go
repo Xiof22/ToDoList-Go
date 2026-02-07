@@ -3,7 +3,7 @@ package dto
 import "github.com/Xiof22/ToDoList/internal/models"
 
 type User struct {
-	ID    string    `json:"id"`
+	ID    string `json:"id"`
 	Email string `json:"email"`
 }
 
